@@ -1,0 +1,24 @@
+{
+  "name": "codenova-fixed",
+  "version": "1.0.0",
+  "description": "A production-ready Django education platform with admin-controlled user approval, multi-role dashboards, AI-powered quiz generation, AI chatbot, client project tracking, and inquiry/demo scheduling.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vedant012345/CodeNova.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Vedant012345/CodeNova/issues"
+  },
+  "homepage": "https://github.com/Vedant012345/CodeNova#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
