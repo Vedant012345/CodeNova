@@ -1,0 +1,203 @@
+{% extends "portal/base.html" %}
+{% block title %}AI Chatbot{% endblock %}
+{% block breadcrumb %}AI Chatbot{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto flex flex-col" style="height:calc(100vh - 7rem); min-height: 400px;">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined fill-icon text-black">smart_toy</span>
+      </div>
+      <div>
+        <h2 class="font-headline text-base font-bold text-on-surface">ScholarBot</h2>
+        <p class="text-xs text-on-surface-variant flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> AI Tutor · Powered by Groq LLaMA 3
+        </p>
+      </div>
+    </div>
+    <!-- Topic selector -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-on-surface-variant">Topic:</span>
+      <select id="topic-select" class="bg-black rounded-xl px-3 py-1.5 text-xs text-white border-0 focus:outline-none focus:ring-1 focus:ring-primary/40">
+        <option value="">General</option>
+        {% for t in topics %}
+        <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Chat window -->
+  <div class="glass-card rounded-2xl flex-1 flex flex-col overflow-hidden">
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+      {% if not messages %}
+      <!-- Welcome message -->
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="material-symbols-outlined fill-icon text-black text-sm">smart_toy</span>
+        </div>
+        <div class="max-w-lg">
+          <div class="bg-surface-container rounded-2xl rounded-tl-sm px-4 py-3">
+            <p class="text-sm text-on-surface">Hi! I'm <strong>ScholarBot</strong>, your AI tutor powered by LLaMA 3. Ask me anything about coding, mathematics, science, or any topic you're studying. I'm here to help! 🎓</p>
+          </div>
+          <p class="text-xs text-on-surface-variant mt-1 ml-1">Just now</p>
+        </div>
+      </div>
+      {% endif %}
+      {% for msg in messages %}
+      <div class="flex items-start gap-3 {% if msg.role == 'user' %}flex-row-reverse{% endif %}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 {% if msg.role == 'user' %}bg-primary/20{% else %}gradient-bg{% endif %}">
+          {% if msg.role == 'user' %}
+          <span class="text-primary text-xs font-black">{{ user.get_full_name|slice:":1"|upper }}</span>
+          {% else %}
+          <span class="material-symbols-outlined fill-icon text-black text-sm">smart_toy</span>
+          {% endif %}
+        </div>
+        <div class="max-w-lg {% if msg.role == 'user' %}items-end{% endif %}">
+          <div class="{% if msg.role == 'user' %}bg-primary/20 rounded-2xl rounded-tr-sm{% else %}bg-surface-container rounded-2xl rounded-tl-sm{% endif %} px-4 py-3">
+            <p class="text-sm text-on-surface whitespace-pre-wrap">{{ msg.content }}</p>
+          </div>
+          <p class="text-xs text-on-surface-variant mt-1 {% if msg.role == 'user' %}text-right mr-1{% else %}ml-1{% endif %}">{{ msg.timestamp|date:"H:i" }}</p>
+        </div>
+      </div>
+      {% endfor %}
+      <!-- Typing indicator (hidden by default) -->
+      <div id="typing-indicator" class="flex items-start gap-3 hidden">
+        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined fill-icon text-white text-sm">smart_toy</span></div>
+        <div class="bg-surface-container rounded-2xl rounded-tl-sm px-4 py-3">
+          <div class="flex gap-1 items-center h-5 mb-1">
+            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:0s"></span>
+            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:0.15s"></span>
+            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:0.3s"></span>
+          </div>
+          <p class="typing-text text-xs text-on-surface-variant">ScholarBot is thinking…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="p-4 border-t border-outline-variant/10">
+      <div class="flex gap-3">
+        <input type="text" id="message-input" placeholder="Ask anything — Python, maths, history..."
+          class="flex-1 bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        <button id="send-btn"
+          class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center hover:opacity-90 transition-all active:scale-95 flex-shrink-0">
+          <span class="material-symbols-outlined fill-icon text-black">send</span>
+        </button>
+      </div>
+      <p class="text-xs text-on-surface-variant mt-2 text-center">ScholarBot can make mistakes. Verify important information.</p>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+const chatEl     = document.getElementById('chat-messages');
+const input      = document.getElementById('message-input');
+const sendBtn    = document.getElementById('send-btn');
+const topicSel   = document.getElementById('topic-select');
+const typingEl   = document.getElementById('typing-indicator');
+const SEND_URL   = "{% url 'portal:chatbot_send' %}";
+const CSRF_TOKEN = "{{ csrf_token }}";
+
+function scrollBottom() {
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+scrollBottom();
+
+function appendMessage(role, content, time) {
+  const isUser = role === 'user';
+  const initials = "{{ user.get_full_name|slice:':1'|upper }}";
+  const now = time || new Date().toLocaleTimeString('en', {hour:'2-digit', minute:'2-digit'});
+  const bubble = `
+    <div class="flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isUser ? 'bg-primary/20' : 'gradient-bg'}">
+        ${isUser
+          ? `<span class="text-primary text-xs font-black">${initials}</span>`
+          : `<span class="material-symbols-outlined fill-icon text-black text-sm">smart_toy</span>`}
+      </div>
+      <div class="max-w-lg ${isUser ? 'items-end' : ''}">
+        <div class="${isUser ? 'bg-primary/20 rounded-2xl rounded-tr-sm' : 'bg-surface-container rounded-2xl rounded-tl-sm'} px-4 py-3">
+          <p class="text-sm text-on-surface whitespace-pre-wrap">${escHtml(content)}</p>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-1 ${isUser ? 'text-right mr-1' : 'ml-1'}">${now}</p>
+      </div>
+    </div>`;
+  typingEl.insertAdjacentHTML('beforebegin', bubble);
+  scrollBottom();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// v8: Enhanced chatbot with loading indicator, retry logic, and error fallback
+let _retrying = false;
+
+async function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+  const topic = topicSel.value;
+  input.value = '';
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span>';
+  appendMessage('user', msg);
+
+  // Show typing indicator with animated dots
+  typingEl.classList.remove('hidden');
+  typingEl.querySelector('.typing-text').textContent = 'ScholarBot is thinking…';
+  scrollBottom();
+
+  try {
+    const controller = new AbortController();
+    // 30s timeout — Groq is fast but can queue
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const res = await fetch(SEND_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken': CSRF_TOKEN},
+      body: JSON.stringify({message: msg, topic: topic}),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+    const data = await res.json();
+    typingEl.classList.add('hidden');
+
+    if (data.reply) {
+      appendMessage('assistant', data.reply);
+    } else if (data.error) {
+      // AI service error (e.g. all models failed)
+      appendMessage('assistant',
+        `⚠️ ${data.error}\n\nTip: Check that GROQ_API_KEY is set in your .env file.`);
+    } else {
+      appendMessage('assistant', 'No response received. Please try again.');
+    }
+  } catch(e) {
+    typingEl.classList.add('hidden');
+    if (e.name === 'AbortError') {
+      // Timeout
+      appendMessage('assistant',
+        '⏱️ Response timed out (30s). The AI models may be busy — please try again in a moment.');
+    } else {
+      // Network error
+      appendMessage('assistant',
+        '🔌 Connection error. Please check your internet connection and try again.\n\n' +
+        `Details: ${e.message}`);
+    }
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<span class="material-symbols-outlined text-base fill-icon">send</span>';
+    input.focus();
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Quizzes{% endblock %}
+{% block breadcrumb %}Quizzes{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <!-- Create form -->
+  <div>
+    <div class="form-card mb-4">
+      <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> Create Quiz</div>
+      <form method="post" class="space-y-3">
+        {% csrf_token %}
+        <input type="text" name="title" required placeholder="Quiz title *" class="h-input"/>
+        <input type="text" name="subject" placeholder="Subject" class="h-input"/>
+        <textarea name="description" rows="2" placeholder="Description…" class="h-input resize-none"></textarea>
+        <input type="number" name="time_limit_minutes" placeholder="Time limit (min, 0=none)" min="0" class="h-input"/>
+        <button type="submit" class="w-full h-btn h-btn-primary justify-center">Create Quiz</button>
+      </form>
+    </div>
+    <a href="{% url 'portal:host_quiz_analytics' %}" class="form-card flex items-center gap-3 p-4 border border-green-700/20 hover:border-green-500/40 transition-all group mb-2">
+      <span class="material-symbols-outlined fill-icon text-green-400 text-2xl">analytics</span>
+      <div>
+        <p class="font-bold text-on-surface text-sm">Quiz Analytics</p>
+        <p class="text-xs text-on-surface-variant">View student scores &amp; answers</p>
+      </div>
+    </a>
+    <a href="{% url 'portal:host_ai_quiz' %}" class="form-card flex items-center gap-3 p-4 border border-primary/20 hover:border-primary/40 transition-all group">
+      <span class="material-symbols-outlined fill-icon text-primary text-2xl">auto_awesome</span>
+      <div><p class="font-bold text-on-surface text-sm">AI Quiz Generator</p><p class="text-xs text-on-surface-variant">Generate with Groq AI</p></div>
+      <span class="ml-auto text-[10px] gradient-bg text-black font-bold px-2 py-1 rounded-full">AI</span>
+    </a>
+  </div>
+
+  <!-- Quiz list -->
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Quizzes ({{ page.paginator.count }})</h3>
+    <div class="space-y-2">
+      {% for quiz in page.object_list %}
+      <div class="glass-card rounded-xl p-4">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 {% if quiz.is_ai_generated %}bg-primary/15{% else %}bg-secondary/15{% endif %} rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined fill-icon {% if quiz.is_ai_generated %}text-primary{% else %}text-secondary{% endif %} text-base">
+              {% if quiz.is_ai_generated %}auto_awesome{% else %}quiz{% endif %}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="text-sm font-bold text-on-surface">{{ quiz.title }}</p>
+              {% if quiz.is_ai_generated %}<span class="badge badge-info text-[10px]">AI</span>{% endif %}
+              {% if not quiz.is_active %}<span class="badge badge-warning text-[10px]">Hidden</span>{% endif %}
+            </div>
+            <p class="text-xs text-on-surface-variant">{{ quiz.q_count }} questions · {{ quiz.subject }} · {{ quiz.created_at|date:"M d" }}</p>
+          </div>
+          <div class="flex gap-1.5 flex-shrink-0 flex-wrap justify-end">
+            <a href="{% url 'portal:host_quiz_questions' quiz.pk %}" class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">Questions</a>
+            <form method="post" action="{% url 'portal:host_quiz_toggle' quiz.pk %}">
+              {% csrf_token %}
+              <button class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">{% if quiz.is_active %}Hide{% else %}Show{% endif %}</button>
+            </form>
+            <form method="post" action="{% url 'portal:host_quiz_delete' quiz.pk %}" onsubmit="return confirm('Delete?')">
+              {% csrf_token %}
+              <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Del</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No quizzes yet.</p></div>
+      {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+    <div class="flex gap-2 mt-4 justify-center">
+      {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}" class="h-btn h-btn-ghost text-xs">← Prev</a>{% endif %}
+      <span class="text-xs text-on-surface-variant self-center">{{ page.number }}/{{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="?page={{ page.next_page_number }}" class="h-btn h-btn-ghost text-xs">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

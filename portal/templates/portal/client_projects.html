@@ -1,0 +1,83 @@
+{% extends "portal/base.html" %}
+{% block title %}My Projects{% endblock %}
+{% block breadcrumb %}My Projects{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">My Projects</h2>
+  <p class="text-on-surface-variant text-sm">Full project details, progress, and team updates.</p>
+</div>
+{% if projects %}
+<div class="space-y-5">
+  {% for p in projects %}
+  <div class="glass-card rounded-2xl p-7">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
+          <h3 class="font-headline text-lg font-bold text-on-surface">{{ p.title }}</h3>
+          <span class="text-xs px-2.5 py-1 rounded-full font-bold
+            {% if p.status == 'completed' %}bg-green-900/30 text-green-400
+            {% elif p.status == 'in_progress' %}bg-primary/15 text-primary
+            {% elif p.status == 'on_hold' %}bg-red-900/30 text-error
+            {% elif p.status == 'review' %}bg-secondary/15 text-secondary
+            {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+            {{ p.get_status_display }}
+          </span>
+          {% if p.is_overdue %}<span class="text-xs px-2.5 py-1 rounded-full bg-red-900/30 text-error font-bold">⚠ Overdue</span>{% endif %}
+        </div>
+        {% if p.description %}<p class="text-sm text-on-surface-variant max-w-2xl">{{ p.description }}</p>{% endif %}
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="text-3xl font-extrabold font-headline gradient-text">{{ p.progress }}%</p>
+        <p class="text-xs text-on-surface-variant">complete</p>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div class="progress-track h-3 mb-5"><div class="progress-fill h-3" style="width:{{ p.progress }}%"></div></div>
+    <!-- Meta grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div class="bg-surface-container rounded-xl p-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Team</p>
+        <p class="text-lg font-extrabold font-headline text-on-surface">{{ p.team_size }}</p>
+        <p class="text-xs text-on-surface-variant">member{{ p.team_size|pluralize }}</p>
+      </div>
+      {% if p.start_date %}
+      <div class="bg-surface-container rounded-xl p-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Started</p>
+        <p class="text-sm font-bold text-on-surface">{{ p.start_date|date:"M d, Y" }}</p>
+      </div>
+      {% endif %}
+      {% if p.deadline %}
+      <div class="bg-surface-container rounded-xl p-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Deadline</p>
+        <p class="text-sm font-bold {% if p.is_overdue %}text-error{% else %}text-on-surface{% endif %}">{{ p.deadline|date:"M d, Y" }}</p>
+      </div>
+      {% endif %}
+      {% if p.budget %}
+      <div class="bg-surface-container rounded-xl p-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Budget</p>
+        <p class="text-sm font-bold text-on-surface">{{ p.budget }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% if p.tech_stack %}
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Stack:</span>
+      {% for tech in p.tech_stack.split %}
+      <span class="text-xs bg-surface-container px-2.5 py-1 rounded-full text-on-surface-variant font-medium">{{ tech|cut:"," }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if p.notes %}
+    <div class="mt-4 p-3 bg-surface-container rounded-xl text-xs text-on-surface-variant"><span class="font-semibold text-on-surface">Note: </span>{{ p.notes }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">folder_open</span>
+  <p class="text-on-surface-variant font-semibold">No projects assigned yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Your project manager will update this dashboard shortly.</p>
+</div>
+{% endif %}
+{% endblock %}

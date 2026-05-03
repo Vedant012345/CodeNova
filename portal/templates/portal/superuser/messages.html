@@ -1,0 +1,29 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Contact Messages{% endblock %}
+{% block breadcrumb %}Contact Messages{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Contact Messages</h2><p class="text-on-surface-variant text-sm">Messages received via the homepage contact form.</p></div>
+<div class="glass rounded-2xl overflow-hidden">
+  <div class="cn-table-wrap"><table class="w-full text-sm">
+    <thead><tr class="border-b border-outline-variant/10"><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">From</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Subject</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Message</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Date</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Actions</th></tr></thead>
+    <tbody class="divide-y divide-outline-variant/10">
+      {% for m in msgs %}
+      <tr class="table-row {% if m.status == 'new' %}bg-primary/5{% endif %}">
+        <td class="px-4 py-3"><p class="font-semibold text-on-surface text-sm">{{ m.name }}</p><p class="text-xs text-on-surface-variant">{{ m.email }}</p></td>
+        <td class="px-4 py-3 text-xs">{{ m.get_subject_display }}</td>
+        <td class="px-4 py-3 text-xs text-on-surface-variant max-w-xs">{{ m.message|truncatechars:80 }}</td>
+        <td class="px-4 py-3 text-xs text-on-surface-variant">{{ m.created_at|date:"M d, Y H:i" }}</td>
+        <td class="px-4 py-3"><span class="badge {% if m.status == 'new' %}badge-warning{% elif m.status == 'replied' %}badge-approved{% else %}badge-info{% endif %}">{{ m.get_status_display }}</span></td>
+        <td class="px-4 py-3"><div class="flex gap-2">
+          {% if m.status == 'new' %}
+          <form method="post" action="{% url 'portal:su_message_mark_read' m.pk %}">{% csrf_token %}<button type="submit" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">Mark Read</button></form>
+          {% endif %}
+          <a href="mailto:{{ m.email }}?subject=Re: {{ m.get_subject_display }}" class="su-btn su-btn-primary" style="padding:4px 10px;font-size:11px;">Reply</a>
+          <form method="post" action="{% url 'portal:su_message_delete' m.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+        </div></td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="px-4 py-8 text-center text-on-surface-variant">No messages yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

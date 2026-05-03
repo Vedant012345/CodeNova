@@ -1,0 +1,113 @@
+{% extends "portal/host/base.html" %}
+{% block title %}AI Chatbot Monitor{% endblock %}
+{% block breadcrumb %}AI Tools → Chatbot Monitor{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h2 class="font-headline text-xl font-extrabold text-on-surface flex items-center gap-2 mb-1">
+    <span class="material-symbols-outlined fill-icon text-secondary">smart_toy</span>
+    AI Chatbot Monitor
+  </h2>
+  <p class="text-on-surface-variant text-sm">{{ total_chats }} total messages · Test ScholarBot · Review student conversations.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+  <!-- Test the Chatbot -->
+  <div class="form-card">
+    <div class="section-header">
+      <span class="material-symbols-outlined fill-icon text-secondary text-base">chat</span>
+      Test ScholarBot (Multi-Model)
+    </div>
+    <form method="post" id="chat-form" class="space-y-3">
+      {% csrf_token %}
+      <textarea name="host_question" rows="3" required
+        placeholder="Ask anything — the AI will respond using Groq with model fallback…"
+        class="h-input resize-none"></textarea>
+      <button type="submit" id="chat-btn" class="h-btn h-btn-primary w-full justify-center">
+        <span class="material-symbols-outlined fill-icon text-base">send</span>
+        Ask ScholarBot
+      </button>
+    </form>
+    {% if ai_reply %}
+    <div class="mt-4 bg-secondary/10 border border-secondary/20 rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined fill-icon text-secondary text-base">smart_toy</span>
+        <span class="text-xs font-bold text-secondary uppercase tracking-wider">ScholarBot Reply</span>
+      </div>
+      <p class="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{{ ai_reply }}</p>
+    </div>
+    {% endif %}
+    <div class="mt-4 p-3 bg-surface-container rounded-xl">
+      <p class="text-xs text-on-surface-variant">
+        <span class="font-semibold text-primary">Multi-model fallback active:</span>
+        llama3-8b → mixtral-8x7b → gemma-7b → llama3-70b
+      </p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="space-y-4">
+    <div class="stat-card">
+      <p class="text-3xl font-extrabold font-headline text-secondary">{{ total_chats }}</p>
+      <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Total Chat Messages</p>
+    </div>
+    <div class="form-card">
+      <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Model Fallback Chain</p>
+      {% for model in models %}
+      <div class="flex items-center gap-2 py-1.5 border-b border-outline-variant/10 last:border-0">
+        <span class="text-xs font-bold text-primary">{{ forloop.counter }}</span>
+        <code class="text-xs bg-surface-container px-2 py-0.5 rounded text-on-surface flex-1">{{ model }}</code>
+        {% if forloop.first %}<span class="badge badge-success text-[10px]">Primary</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Chat Logs Table -->
+<div class="glass-card rounded-2xl overflow-hidden">
+  <div class="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+    <h3 class="font-headline font-bold text-on-surface">Student Chat Logs</h3>
+    <span class="text-xs text-on-surface-variant">Latest {{ page.object_list|length }} entries</span>
+  </div>
+  {% if page.object_list %}
+  <div class="divide-y divide-outline-variant/5">
+    {% for msg in page.object_list %}
+    <div class="px-5 py-3 flex items-start gap-3 table-row">
+      <span class="text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 mt-0.5
+        {% if msg.role == 'user' %}bg-primary/15 text-primary{% else %}bg-secondary/15 text-secondary{% endif %}">
+        {{ msg.role|upper }}
+      </span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="text-xs font-bold text-on-surface">{{ msg.student.username }}</span>
+          {% if msg.topic %}<span class="text-xs text-on-surface-variant italic">· {{ msg.topic }}</span>{% endif %}
+        </div>
+        <p class="text-xs text-on-surface-variant leading-relaxed">{{ msg.content|truncatechars:150 }}</p>
+      </div>
+      <span class="text-[10px] text-on-surface-variant flex-shrink-0">{{ msg.timestamp|date:"M d H:i" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="px-5 py-16 text-center">
+    <span class="material-symbols-outlined fill-icon text-on-surface-variant/20 text-5xl block mb-3">chat_bubble</span>
+    <p class="text-on-surface-variant">No chat messages yet.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% if page.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-6">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}" class="h-btn h-btn-ghost text-xs">← Prev</a>{% endif %}
+  <span class="text-xs text-on-surface-variant">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}" class="h-btn h-btn-ghost text-xs">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+const MODELS = ['llama3-8b-8192','mixtral-8x7b-32768','gemma-7b-it','llama3-70b-8192'];
+// Expose for template
+</script>
+{% endblock %}

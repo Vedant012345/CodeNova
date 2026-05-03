@@ -1,0 +1,160 @@
+{% extends "portal/host/base.html" %}
+{% block title %}AI Quiz Generator{% endblock %}
+{% block breadcrumb %}AI Quiz Generator{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">AI Quiz Generator</h2>
+  <p class="text-on-surface-variant text-sm">Generate 5–50 MCQ questions on any topic using Groq LLM with multi-model fallback.</p>
+</div>
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="mb-4 px-4 py-3 rounded-xl text-sm
+    {% if 'success' in msg.tags %}bg-green-900/30 text-green-300 border border-green-700/30
+    {% elif 'error' in msg.tags %}bg-red-900/30 text-red-300 border border-red-700/30
+    {% else %}bg-surface-container border border-outline-variant/20{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid lg:grid-cols-5 gap-6">
+  <!-- Generator Form -->
+  <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+    <div class="flex items-center gap-2 mb-5">
+      <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined fill-icon text-primary">auto_awesome</span>
+      </div>
+      <h3 class="font-headline font-bold text-on-surface">Generate Quiz</h3>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Topic *</label>
+        <input type="text" name="topic" required placeholder="e.g. Python decorators, World War II, Calculus..."
+          class="h-input w-full" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Subject (optional)</label>
+        <input type="text" name="subject" placeholder="e.g. Computer Science"
+          class="h-input w-full" />
+      </div>
+
+      <!-- v8: Question count 5-50 -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+          Number of Questions
+          <span class="text-primary font-normal normal-case ml-1">(5 – 50)</span>
+        </label>
+        <div class="flex items-center gap-3">
+          <input type="range" name="n" id="q-slider" min="5" max="50" step="5" value="10"
+            class="flex-1 accent-primary cursor-pointer"
+            oninput="document.getElementById('q-count').textContent = this.value" />
+          <span id="q-count" class="text-primary font-extrabold font-headline text-lg w-8 text-center">10</span>
+        </div>
+        <div class="flex justify-between text-[10px] text-on-surface-variant mt-1 px-0.5">
+          <span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span><span>35</span><span>40</span><span>45</span><span>50</span>
+        </div>
+      </div>
+
+      <!-- Course assignment -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Assign to Course</label>
+        <select name="course_id" class="h-input w-full">
+          <option value="">— All Students (no course filter) —</option>
+          {% for course in courses %}
+          <option value="{{ course.pk }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Model info -->
+      <div class="p-3 bg-surface-container rounded-xl text-xs text-on-surface-variant">
+        <p class="font-semibold text-on-surface mb-1">🤖 Multi-model fallback active</p>
+        <p>Tries: llama3-8b → mixtral-8x7b → gemma-7b → llama3-70b</p>
+        <p class="mt-1">API key loaded from <code class="bg-surface-container-high px-1 rounded">.env</code> — never hardcoded.</p>
+      </div>
+
+      <button type="submit" class="h-btn h-btn-primary w-full py-3 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined fill-icon text-lg">auto_awesome</span>
+        Generate Quiz
+      </button>
+    </form>
+  </div>
+
+  <!-- Results + Recent -->
+  <div class="lg:col-span-3 space-y-5">
+
+    {% if result %}
+    <!-- Generated Quiz Preview -->
+    <div class="glass-card rounded-2xl p-5 border border-green-700/20">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined fill-icon text-green-400 text-2xl">check_circle</span>
+        <div>
+          <p class="font-headline font-bold text-on-surface">{{ result.quiz.title }}</p>
+          <p class="text-xs text-on-surface-variant">{{ result.questions|length }} questions saved to database</p>
+        </div>
+        <a href="{% url 'portal:host_quiz_questions' result.quiz.pk %}"
+           class="ml-auto h-btn h-btn-primary text-xs" style="padding:6px 14px;">
+          View Quiz →
+        </a>
+      </div>
+      <div class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
+        {% for q in result.questions %}
+        <div class="p-3 bg-surface-container rounded-xl">
+          <p class="text-sm font-semibold text-on-surface mb-1.5">{{ forloop.counter }}. {{ q.text }}</p>
+          <div class="grid grid-cols-2 gap-1">
+            <span class="text-xs px-2 py-1 rounded-lg {% if q.correct == 'A' %}bg-green-900/40 text-green-300{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">A: {{ q.option_a }}</span>
+            <span class="text-xs px-2 py-1 rounded-lg {% if q.correct == 'B' %}bg-green-900/40 text-green-300{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">B: {{ q.option_b }}</span>
+            <span class="text-xs px-2 py-1 rounded-lg {% if q.correct == 'C' %}bg-green-900/40 text-green-300{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">C: {{ q.option_c }}</span>
+            <span class="text-xs px-2 py-1 rounded-lg {% if q.correct == 'D' %}bg-green-900/40 text-green-300{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">D: {{ q.option_d }}</span>
+          </div>
+          {% if q.explanation %}
+          <p class="text-[11px] text-on-surface-variant mt-1.5 italic">💡 {{ q.explanation }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent AI Quizzes -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-outline-variant/10">
+        <p class="font-headline font-bold text-on-surface">Recent AI Quizzes</p>
+      </div>
+      <div class="divide-y divide-outline-variant/10">
+        {% for quiz in recent_ai_quizzes %}
+        <div class="flex items-center justify-between px-5 py-3">
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-on-surface truncate">{{ quiz.title }}</p>
+            <p class="text-xs text-on-surface-variant">
+              {{ quiz.questions.count }} Q · {{ quiz.created_at|date:"M d, Y" }}
+              {% if quiz.course %} · <span class="text-primary">{{ quiz.course.title }}</span>{% endif %}
+            </p>
+          </div>
+          <div class="flex gap-2 ml-3 flex-shrink-0">
+            <a href="{% url 'portal:host_quiz_questions' quiz.pk %}"
+               class="h-btn h-btn-ghost text-xs" style="padding:4px 10px;">View</a>
+            <form method="post" action="{% url 'portal:host_quiz_delete' quiz.pk %}"
+                  onsubmit="return confirm('Delete this quiz?')">
+              {% csrf_token %}
+              <button class="h-btn h-btn-danger text-xs" style="padding:4px 10px;">Del</button>
+            </form>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-5 py-8 text-center text-on-surface-variant text-sm">
+          No AI quizzes yet. Generate your first one!
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

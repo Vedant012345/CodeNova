@@ -1,0 +1,64 @@
+{% extends "portal/base.html" %}
+{% block title %}Assignments{% endblock %}
+{% block breadcrumb %}Assignments{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Assignments</h2>
+  <p class="text-on-surface-variant text-sm">Submit your work before the deadline.</p>
+</div>
+{% if data %}
+<div class="space-y-4">
+  {% for item in data %}
+  <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center gap-5 hover:border-primary/15 transition-all">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
+      {% if item.submission %}bg-green-900/30{% elif item.past_due %}bg-red-900/30{% else %}bg-primary/15{% endif %}">
+      <span class="material-symbols-outlined fill-icon text-xl
+        {% if item.submission %}text-green-400{% elif item.past_due %}text-error{% else %}text-primary{% endif %}">
+        {% if item.submission %}task_alt{% elif item.past_due %}assignment_late{% else %}assignment{% endif %}
+      </span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center gap-2 mb-1">
+        <h3 class="font-headline font-bold text-on-surface">{{ item.assignment.title }}</h3>
+        {% if item.assignment.subject %}<span class="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full font-semibold">{{ item.assignment.subject }}</span>{% endif %}
+        {% if item.submission %}<span class="text-xs bg-green-900/30 text-green-400 px-2 py-0.5 rounded-full font-semibold">{{ item.submission.get_status_display }}</span>
+        {% elif item.past_due %}<span class="text-xs bg-red-900/30 text-error px-2 py-0.5 rounded-full font-semibold">Past Due</span>
+        {% else %}<span class="text-xs bg-yellow-900/30 text-yellow-400 px-2 py-0.5 rounded-full font-semibold">Pending</span>{% endif %}
+      </div>
+      <p class="text-sm text-on-surface-variant leading-relaxed mb-2">{{ item.assignment.description|truncatechars:160 }}</p>
+      <div class="flex items-center gap-4 text-xs text-on-surface-variant">
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_today</span> Due {{ item.assignment.due_date|date:"M d, Y H:i" }}</span>
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">star</span> {{ item.assignment.max_marks }} marks</span>
+        {% if item.submission and item.submission.marks is not None %}
+        <span class="flex items-center gap-1 text-green-400 font-semibold"><span class="material-symbols-outlined text-sm">grade</span> {{ item.submission.marks }}/{{ item.assignment.max_marks }}</span>
+        {% endif %}
+      </div>
+      {% if item.submission and item.submission.feedback %}
+      <div class="mt-2 p-2 bg-surface-container rounded-lg text-xs text-on-surface-variant"><span class="font-semibold">Feedback:</span> {{ item.submission.feedback }}</div>
+      {% endif %}
+    </div>
+    <div class="flex-shrink-0">
+      {% if item.submission %}
+      <div class="text-center">
+        <span class="material-symbols-outlined text-green-400 fill-icon text-3xl block">task_alt</span>
+        <p class="text-xs text-green-400 font-semibold mt-1">Submitted</p>
+        {% if item.submission.submitted_at %}<p class="text-xs text-on-surface-variant">{{ item.submission.submitted_at|date:"M d" }}</p>{% endif %}
+      </div>
+      {% elif item.past_due %}
+      <button disabled class="px-5 py-2.5 rounded-xl text-sm font-bold text-on-surface-variant bg-surface-container cursor-not-allowed">Deadline Passed</button>
+      {% else %}
+      <a href="{% url 'portal:assignment_submit' item.assignment.pk %}"
+        class="inline-block px-5 py-2.5 rounded-xl text-sm font-bold text-black gradient-bg hover:opacity-90 transition-all">Submit Work</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">assignment</span>
+  <p class="text-on-surface-variant font-semibold">No assignments yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Assignments will appear here when published.</p>
+</div>
+{% endif %}
+{% endblock %}

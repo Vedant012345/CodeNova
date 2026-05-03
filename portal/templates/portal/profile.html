@@ -1,0 +1,70 @@
+{% extends "portal/base.html" %}
+{% block title %}Profile{% endblock %}
+{% block breadcrumb %}Profile{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+  <div class="mb-8">
+    <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Your Profile</h2>
+    <p class="text-on-surface-variant text-sm">Manage your personal information.</p>
+  </div>
+  <!-- Identity -->
+  <div class="glass-card rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+    <div class="relative">
+      {% if user.avatar %}
+      <img src="{{ user.avatar.url }}" alt="Avatar" class="w-20 h-20 rounded-2xl object-cover"/>
+      {% else %}
+      <div class="w-20 h-20 rounded-2xl gradient-bg flex items-center justify-center text-black text-2xl font-black">{{ user.get_full_name|slice:":1"|upper }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <h3 class="font-headline text-lg font-bold text-on-surface">{{ user.get_full_name }}</h3>
+      <p class="text-sm text-on-surface-variant">@{{ user.username }}</p>
+      <p class="text-sm text-on-surface-variant">{{ user.email }}</p>
+      <div class="flex items-center gap-2 mt-2 flex-wrap">
+        {% if user.is_approved %}
+        <span class="bg-green-900/30 text-green-400 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs fill-icon">verified</span> Approved
+        </span>
+        {% endif %}
+        <span class="bg-primary/15 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">{{ user.get_role_display }}</span>
+        <span class="bg-surface-container text-on-surface-variant text-xs font-semibold px-2.5 py-1 rounded-full">Joined {{ user.date_joined|date:"M Y" }}</span>
+      </div>
+    </div>
+  </div>
+  <!-- Edit form -->
+  <div class="glass-card rounded-2xl p-7">
+    <h3 class="font-headline font-bold text-on-surface mb-6">Edit Information</h3>
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">First Name</label>
+          <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="First name"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 transition-all"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Last Name</label>
+          <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="Last name"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 transition-all"/>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Email</label>
+        <input type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="your@email.com"
+          class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 transition-all"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Bio</label>
+        <textarea name="bio" rows="3" placeholder="Tell us about yourself..."
+          class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 resize-none transition-all">{{ form.bio.value|default:'' }}</textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Profile Photo</label>
+        <input type="file" name="avatar" accept="image/*"
+          class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface border-0 transition-all file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-primary/15 file:text-primary file:text-xs file:font-semibold"/>
+      </div>
+      <button type="submit" class="w-full py-3.5 rounded-full gradient-bg font-bold text-black text-sm hover:opacity-90 transition-all">Save Changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

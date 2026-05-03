@@ -1,0 +1,87 @@
+{% extends "portal/base.html" %}
+{% load portal_tags %}
+{% block title %}AI Quiz Generator{% endblock %}
+{% block breadcrumb %}AI Quiz Generator{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center"><span class="material-symbols-outlined fill-icon text-black">auto_awesome</span></div>
+      <h2 class="font-headline text-2xl font-extrabold text-on-surface">AI Quiz Generator</h2>
+    </div>
+    <p class="text-on-surface-variant text-sm">Enter any topic and let AI generate a custom quiz powered by Groq's LLaMA 3.</p>
+  </div>
+  {% if error %}
+  <div class="mb-5 p-4 rounded-xl bg-red-950/50 border border-red-800/30 text-sm text-red-400 flex items-start gap-2.5">
+    <span class="material-symbols-outlined fill-icon text-base mt-0.5">error</span>
+    <div>
+      <p class="font-bold mb-0.5">Generation Failed</p>
+      <p>{{ error }}</p>
+      <p class="mt-1 text-xs text-red-300">Make sure GROQ_API_KEY is set in your environment. Get a free key at <strong>console.groq.com</strong></p>
+    </div>
+  </div>
+  {% endif %}
+  <div class="glass-card rounded-2xl p-8">
+    <form method="post" class="space-y-5" id="gen-form">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Topic *</label>
+        <input type="text" name="topic" placeholder="e.g. Python decorators, Photosynthesis, World War II..." required
+          value="{{ form.topic.value|default:'' }}"
+          class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Subject (optional)</label>
+        <input type="text" name="subject" placeholder="e.g. Computer Science, Biology..."
+          value="{{ form.subject.value|default:'' }}"
+          class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Questions</label>
+          <select name="num_questions" class="w-full bg-black rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0 appearance-none">
+            <option value="3">3 Questions</option>
+            <option value="5" selected>5 Questions</option>
+            <option value="8">8 Questions</option>
+            <option value="10">10 Questions</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Time Limit (min)</label>
+          <input type="number" name="duration" value="15" min="5" max="120"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+      </div>
+      <button type="submit" id="gen-btn"
+        class="w-full py-4 rounded-full gradient-bg font-bold text-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined fill-icon" id="gen-icon">auto_awesome</span>
+        <span id="gen-label">Generate Quiz with AI</span>
+      </button>
+    </form>
+    <div class="mt-6 p-4 bg-surface-container rounded-xl">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-secondary text-base fill-icon mt-0.5">info</span>
+        <div class="text-xs text-on-surface-variant leading-relaxed">
+          <p class="font-semibold text-on-surface mb-1">How it works</p>
+          <p>The AI generates unique questions based on your topic, saves the quiz to the database, and immediately takes you to the attempt screen. Results are tracked in your performance report.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4 text-center">
+    <a href="{% url 'portal:quizzes' %}" class="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 justify-center">
+      <span class="material-symbols-outlined text-base">arrow_back</span> Back to Quizzes
+    </a>
+  </div>
+</div>
+{% block extra_js %}
+<script>
+document.getElementById('gen-form').addEventListener('submit', function() {
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('gen-icon').textContent = 'hourglass_top';
+  document.getElementById('gen-label').textContent = 'Generating with AI...';
+  document.getElementById('gen-btn').classList.add('opacity-70');
+});
+</script>
+{% endblock %}
+{% endblock %}

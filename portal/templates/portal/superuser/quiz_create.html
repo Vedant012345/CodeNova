@@ -1,0 +1,177 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Create Quiz{% endblock %}
+{% block breadcrumb %}Quizzes → Create{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Create Quiz</h2>
+  <p class="text-on-surface-variant text-sm">Use the text parser to paste a quiz in plain text, or create manually.</p>
+</div>
+
+<!-- Tabs -->
+<div class="flex gap-2 mb-6" id="tabs">
+  <button onclick="showTab('text')" id="tab-text"
+    class="px-5 py-2.5 rounded-full text-sm font-bold transition-all su-btn-primary su-btn">
+    <span class="material-symbols-outlined fill-icon text-sm mr-1">auto_fix_high</span>Text Parser
+  </button>
+  <button onclick="showTab('manual')" id="tab-manual"
+    class="px-5 py-2.5 rounded-full text-sm font-bold transition-all su-btn-ghost su-btn">
+    <span class="material-symbols-outlined text-sm mr-1">edit</span>Manual Entry
+  </button>
+</div>
+
+<!-- TEXT PARSER TAB -->
+<div id="pane-text">
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="glass rounded-2xl p-6">
+      <h3 class="font-headline font-bold mb-4 text-on-surface">Paste Quiz Text</h3>
+      {% if parse_error %}
+      <div class="mb-4 p-4 rounded-xl bg-red-950/50 border border-red-800/30 text-sm text-red-400">
+        <p class="font-bold mb-1">Parse Error</p>
+        <p class="whitespace-pre-wrap text-xs">{{ parse_error }}</p>
+      </div>
+      {% endif %}
+      <form method="post" id="text-form">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="text"/>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Quiz Title *</label>
+              <input type="text" name="title" placeholder="e.g. Python Basics Quiz" class="su-input" required/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Subject</label>
+              <input type="text" name="subject" placeholder="e.g. Computer Science" class="su-input"/>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Duration (minutes)</label>
+            <input type="number" name="duration" value="20" min="5" max="120" class="su-input w-full sm:w-32"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Quiz Text *</label>
+            <textarea name="quiz_text" rows="14" placeholder="Q1: What is Python?
+A. A snake
+B. A programming language
+C. An OS
+D. A database
+Answer: B
+
+Q2: What keyword defines a function?
+A. func
+B. define
+C. def
+D. function
+Answer: C" class="su-input resize-none font-mono text-xs leading-relaxed">{{ parse_raw }}</textarea>
+          </div>
+          <div class="flex gap-3">
+            <button type="submit" name="preview" value="1" class="su-btn su-btn-ghost flex-1">
+              <span class="material-symbols-outlined text-sm">preview</span> Preview
+            </button>
+            <button type="submit" name="save" value="1" class="su-btn su-btn-primary flex-1">
+              <span class="material-symbols-outlined text-sm fill-icon">save</span> Save Quiz
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Format guide + preview -->
+    <div class="space-y-4">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-headline font-bold mb-3 text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-base">info</span> Supported Formats
+        </h3>
+        <div class="space-y-4 text-xs text-on-surface-variant">
+          <div>
+            <p class="font-bold text-on-surface mb-1">Multi-line (recommended)</p>
+            <pre class="bg-surface-container rounded-lg p-3 font-mono text-[11px] leading-relaxed overflow-x-auto">Q1: What is Python?
+A. A programming language
+B. A snake
+C. An OS
+D. A database
+Answer: A</pre>
+          </div>
+          <div>
+            <p class="font-bold text-on-surface mb-1">Compact (single line)</p>
+            <pre class="bg-surface-container rounded-lg p-3 font-mono text-[11px] leading-relaxed overflow-x-auto">Q1: What is 2+2? A. 3 B. 4 C. 5 D. 6 Answer: B</pre>
+          </div>
+          <ul class="space-y-1 text-xs">
+            <li>• Separate questions with a blank line</li>
+            <li>• Options must be A, B, C, D</li>
+            <li>• Answer line must be: <code>Answer: B</code></li>
+            <li>• Question numbering Q1, Q2... is optional</li>
+          </ul>
+        </div>
+      </div>
+
+      {% if parse_preview %}
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-headline font-bold mb-3 text-green-400 flex items-center gap-2">
+          <span class="material-symbols-outlined fill-icon text-base">check_circle</span>
+          Preview — {{ parse_preview|length }} Question{{ parse_preview|length|pluralize }}
+        </h3>
+        <div class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
+          {% for q in parse_preview %}
+          <div class="bg-surface-container rounded-xl p-3">
+            <p class="text-xs font-semibold text-on-surface mb-1">Q{{ q.order }}: {{ q.text }}</p>
+            <div class="grid grid-cols-2 gap-1 text-[11px] text-on-surface-variant">
+              <span {% if q.correct == 'A' %}class="text-green-400 font-bold"{% endif %}>A. {{ q.option_a }}</span>
+              <span {% if q.correct == 'B' %}class="text-green-400 font-bold"{% endif %}>B. {{ q.option_b }}</span>
+              <span {% if q.correct == 'C' %}class="text-green-400 font-bold"{% endif %}>C. {{ q.option_c }}</span>
+              <span {% if q.correct == 'D' %}class="text-green-400 font-bold"{% endif %}>D. {{ q.option_d }}</span>
+            </div>
+            <p class="text-[11px] text-green-400 mt-1">✓ Correct: {{ q.correct }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-on-surface-variant mt-3">Looks good? Click <strong>Save Quiz</strong> above.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- MANUAL TAB -->
+<div id="pane-manual" class="hidden">
+  <div class="glass rounded-2xl p-6 max-w-lg">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Create Quiz Shell</h3>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="manual"/>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Title *</label>
+          <input type="text" name="title" placeholder="Quiz title" class="su-input" required/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Subject</label>
+          <input type="text" name="subject" placeholder="Subject" class="su-input"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Duration (min)</label>
+          <input type="number" name="duration" value="20" min="5" max="120" class="su-input w-full sm:w-32"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Description</label>
+          <textarea name="description" rows="2" class="su-input resize-none" placeholder="Optional description"></textarea>
+        </div>
+        <button type="submit" class="su-btn su-btn-primary w-full">Create & Add Questions →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function showTab(t) {
+  document.getElementById('pane-text').classList.toggle('hidden', t !== 'text');
+  document.getElementById('pane-manual').classList.toggle('hidden', t !== 'manual');
+  document.getElementById('tab-text').className = 'px-5 py-2.5 rounded-full text-sm font-bold transition-all su-btn ' + (t==='text'?'su-btn-primary':'su-btn-ghost');
+  document.getElementById('tab-manual').className = 'px-5 py-2.5 rounded-full text-sm font-bold transition-all su-btn ' + (t==='manual'?'su-btn-primary':'su-btn-ghost');
+}
+// Show manual tab if we're coming back from a manual error
+{% if request.POST.mode == 'manual' %}showTab('manual');{% endif %}
+</script>
+{% endblock %}
+{% endblock %}

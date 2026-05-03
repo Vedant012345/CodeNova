@@ -1,0 +1,43 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Quizzes{% endblock %}
+{% block breadcrumb %}Quizzes{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+  <div><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Manage Quizzes</h2><p class="text-on-surface-variant text-sm">{{ quizzes.count }} quizzes total.</p></div>
+  <a href="{% url 'portal:su_quiz_create' %}" class="su-btn su-btn-primary">+ Create Quiz</a>
+</div>
+<div class="glass rounded-2xl overflow-hidden">
+  <div class="cn-table-wrap"><table class="w-full text-sm">
+    <thead><tr class="border-b border-outline-variant/10">
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Title</th>
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Subject</th>
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Qs</th>
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Attempts</th>
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
+      <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Actions</th>
+    </tr></thead>
+    <tbody class="divide-y divide-outline-variant/10">
+      {% for q in quizzes %}
+      <tr class="table-row">
+        <td class="px-4 py-3">
+          <p class="font-semibold text-on-surface">{{ q.title }}</p>
+          {% if q.is_ai_generated %}<span class="badge badge-client text-[10px]">AI</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-on-surface-variant text-xs">{{ q.subject|default:"—" }}</td>
+        <td class="px-4 py-3 font-bold text-on-surface">{{ q.questions.count }}</td>
+        <td class="px-4 py-3 text-on-surface-variant text-xs">{{ q.results.count }}</td>
+        <td class="px-4 py-3">{% if q.is_active %}<span class="badge badge-approved">Active</span>{% else %}<span class="badge badge-pending">Inactive</span>{% endif %}</td>
+        <td class="px-4 py-3">
+          <div class="flex gap-2">
+            <a href="{% url 'portal:su_quiz_questions' q.pk %}" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">Questions</a>
+            <form method="post" action="{% url 'portal:su_quiz_toggle' q.pk %}">{% csrf_token %}<button type="submit" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">{% if q.is_active %}Hide{% else %}Show{% endif %}</button></form>
+            <form method="post" action="{% url 'portal:su_quiz_delete' q.pk %}" onsubmit="return confirm('Delete this quiz?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="px-4 py-8 text-center text-on-surface-variant">No quizzes yet. <a href="{% url 'portal:su_quiz_create' %}" class="text-primary font-semibold">Create one →</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

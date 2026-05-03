@@ -1,0 +1,66 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Notes{% endblock %}
+{% block breadcrumb %}Notes{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <!-- Upload form -->
+  <div class="lg:col-span-1">
+    <div class="form-card">
+      <div class="section-header"><span class="material-symbols-outlined text-primary text-base">upload_file</span> Upload Note</div>
+      <form method="post" enctype="multipart/form-data" class="space-y-3">
+        {% csrf_token %}
+        <input type="text" name="title" required placeholder="Note title *" class="h-input"/>
+        <input type="text" name="subject" placeholder="Subject (e.g. Python)" class="h-input"/>
+        <textarea name="description" rows="3" placeholder="Description…" class="h-input resize-none"></textarea>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">File *</label>
+          <input type="file" name="file" required class="h-input text-xs py-2"/>
+        </div>
+        <button type="submit" class="w-full h-btn h-btn-primary justify-center">
+          <span class="material-symbols-outlined text-base">upload</span> Upload Note
+        </button>
+      </form>
+    </div>
+  </div>
+  <!-- Notes list -->
+  <div class="lg:col-span-2">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-on-surface">All Notes ({{ page.paginator.count }})</h3>
+      <form method="get"><input type="text" name="q" value="{{ q }}" placeholder="Search…" class="h-input" class="flex-1 min-w-[150px]"/></form>
+    </div>
+    <div class="space-y-2">
+      {% for note in page.object_list %}
+      <div class="glass-card rounded-xl p-4 flex items-center gap-3 table-row">
+        <span class="material-symbols-outlined fill-icon text-primary flex-shrink-0">description</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-on-surface truncate">{{ note.title }}</p>
+          <p class="text-xs text-on-surface-variant">{{ note.subject }} · {{ note.created_at|date:"M d, Y" }}</p>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <form method="post" action="{% url 'portal:host_note_toggle' note.pk %}">
+            {% csrf_token %}
+            <button class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">
+              {% if note.is_active %}Hide{% else %}Show{% endif %}
+            </button>
+          </form>
+          <form method="post" action="{% url 'portal:host_note_delete' note.pk %}" onsubmit="return confirm('Delete?')">
+            {% csrf_token %}
+            <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Delete</button>
+          </form>
+        </div>
+        {% if not note.is_active %}<span class="badge badge-warning text-[10px]">Hidden</span>{% endif %}
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No notes yet.</p></div>
+      {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+    <div class="flex gap-2 mt-4 justify-center">
+      {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&q={{ q }}" class="h-btn h-btn-ghost text-xs">← Prev</a>{% endif %}
+      <span class="text-xs text-on-surface-variant self-center">{{ page.number }}/{{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="?page={{ page.next_page_number }}&q={{ q }}" class="h-btn h-btn-ghost text-xs">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

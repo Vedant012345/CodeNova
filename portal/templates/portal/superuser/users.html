@@ -1,0 +1,118 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Users{% endblock %}
+{% block breadcrumb %}Users{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+  <div>
+    <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Manage Users</h2>
+    <p class="text-on-surface-variant text-sm">Approve, reject, or delete user accounts.</p>
+  </div>
+  <form method="post" action="{% url 'portal:su_bulk_approve' %}">{% csrf_token %}
+    <button type="submit" class="su-btn su-btn-primary">Approve All Pending</button>
+  </form>
+</div>
+
+<!-- Filters -->
+<form method="get" class="glass rounded-2xl p-4 mb-6 flex flex-wrap gap-3 items-end">
+  <div class="flex-1 min-w-36">
+    <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Search</label>
+    <input type="text" name="q" value="{{ q }}" placeholder="Username, email..." class="su-input"/>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Role</label>
+    <select name="role" class="su-input w-full sm:w-auto min-w-[120px]">
+      <option value="">All Roles</option>
+      <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+      <option value="client" {% if role == 'client' %}selected{% endif %}>Client</option>
+      <option value="inquiry" {% if role == 'inquiry' %}selected{% endif %}>Inquiry</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Status</label>
+    <select name="status" class="su-input w-full sm:w-auto min-w-[120px]">
+      <option value="">All</option>
+      <option value="approved" {% if status == 'approved' %}selected{% endif %}>Approved</option>
+      <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+    </select>
+  </div>
+  <button type="submit" class="su-btn su-btn-ghost">Filter</button>
+  <a href="{% url 'portal:su_users' %}" class="su-btn su-btn-ghost">Clear</a>
+</form>
+
+<!-- Table -->
+<div class="glass rounded-2xl overflow-hidden">
+  <div class="overflow-x-auto">
+    <div class="cn-table-wrap"><table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-outline-variant/10">
+          <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">User</th>
+          <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Role</th>
+          <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
+          <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Joined</th>
+          <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/10">
+        {% for u in page %}
+        <tr class="table-row">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-black text-xs font-black flex-shrink-0">{{ u.get_full_name|slice:":1"|upper }}</div>
+              <div>
+                <p class="font-semibold text-on-surface">{{ u.username }}</p>
+                <p class="text-xs text-on-surface-variant">{{ u.email }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="badge badge-{{ u.role }}">{{ u.get_role_display }}</span></td>
+          <td class="px-4 py-3">
+            {% if u.is_approved %}
+            <span class="badge badge-approved">Approved</span>
+            {% else %}
+            <span class="badge badge-pending">Pending</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-xs text-on-surface-variant">{{ u.date_joined|date:"M d, Y" }}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2 flex-wrap">
+              {% if not u.is_approved %}
+              <form method="post" action="{% url 'portal:su_user_action' u.pk %}">{% csrf_token %}
+                <input type="hidden" name="action" value="approve"/>
+                <button type="submit" class="su-btn su-btn-primary" style="padding:4px 10px;font-size:11px;">Approve</button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'portal:su_user_action' u.pk %}">{% csrf_token %}
+                <input type="hidden" name="action" value="reject"/>
+                <button type="submit" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">Revoke</button>
+              </form>
+              {% endif %}
+              {% if u.role == 'student' %}
+              <a href="{% url 'portal:su_user_courses' u.pk %}"
+                 class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;text-decoration:none;display:inline-block;">
+                📚 Courses
+              </a>
+              {% endif %}
+              <form method="post" action="{% url 'portal:su_user_action' u.pk %}" onsubmit="return confirm('Delete {{ u.username }}?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete"/>
+                <button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+  <!-- Pagination -->
+  {% if page.has_other_pages %}
+  <div class="px-4 py-3 border-t border-outline-variant/10 flex items-center gap-2">
+    {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&q={{ q }}&role={{ role }}&status={{ status }}" class="su-btn su-btn-ghost" style="padding:4px 12px;font-size:12px;">← Prev</a>{% endif %}
+    <span class="text-xs text-on-surface-variant">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}&q={{ q }}&role={{ role }}&status={{ status }}" class="su-btn su-btn-ghost" style="padding:4px 12px;font-size:12px;">Next →</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Users{% endblock %}
+{% block breadcrumb %}Users{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h2 class="font-headline text-xl font-extrabold text-on-surface">User Management</h2>
+  <form method="post" action="{% url 'portal:host_bulk_approve' %}">
+    {% csrf_token %}
+    <button class="h-btn h-btn-green">
+      <span class="material-symbols-outlined text-base">done_all</span> Bulk Approve Pending
+    </button>
+  </form>
+</div>
+
+<!-- Filters -->
+<form method="get" class="flex flex-wrap gap-3 mb-6">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search username / email…" class="h-input flex-1 min-w-[160px]"/>
+  <select name="role" class="h-input flex-1 min-w-[130px]">
+    <option value="">All Roles</option>
+    {% for val, label in role_choices %}<option value="{{ val }}" {% if current_role == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="status" class="h-input flex-1 min-w-[130px]">
+    <option value="">All Status</option>
+    <option value="pending" {% if current_status == "pending" %}selected{% endif %}>Pending</option>
+    <option value="approved" {% if current_status == "approved" %}selected{% endif %}>Approved</option>
+  </select>
+  <div class="flex gap-2">
+    <button type="submit" class="h-btn h-btn-primary">Filter</button>
+    <a href="{% url 'portal:host_users' %}" class="h-btn h-btn-ghost">Reset</a>
+  </div>
+</form>
+
+<div class="cn-table-wrap glass-card rounded-2xl">
+  <table class="w-full text-sm" style="min-width:680px;">
+    <thead>
+      <tr class="border-b border-outline-variant/10 text-xs uppercase tracking-wider text-on-surface-variant">
+        <th class="px-5 py-3 text-left font-semibold">User</th>
+        <th class="px-5 py-3 text-left font-semibold">Role</th>
+        <th class="px-5 py-3 text-left font-semibold">Joined</th>
+        <th class="px-5 py-3 text-left font-semibold">Course</th>
+        <th class="px-5 py-3 text-left font-semibold">Status</th>
+        <th class="px-5 py-3 text-left font-semibold">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in page.object_list %}
+      <tr class="table-row border-b border-outline-variant/5">
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="text-black font-bold text-xs">{{ u.username|first|upper }}</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-semibold text-on-surface truncate max-w-[120px]">{{ u.username }}</p>
+              <p class="text-xs text-on-surface-variant truncate max-w-[120px]">{{ u.email }}</p>
+            </div>
+          </div>
+        </td>
+        <td class="px-5 py-3"><span class="badge badge-{{ u.role }}">{{ u.get_role_display }}</span></td>
+        <td class="px-5 py-3 text-on-surface-variant text-xs whitespace-nowrap">{{ u.date_joined|date:"M d, Y" }}</td>
+        <td class="px-5 py-3 text-xs">
+          {% if u.role == 'student' %}
+            {% if u.registration_course %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                <span class="material-symbols-outlined text-xs">school</span>
+                {{ u.registration_course.title }}
+              </span>
+            {% elif u.enrolled_courses.all %}
+              <span class="text-on-surface-variant">{{ u.enrolled_courses.all|join:", " }}</span>
+            {% else %}
+              <span class="text-on-surface-variant/50">Not set</span>
+            {% endif %}
+          {% else %}
+            <span class="text-on-surface-variant/30">—</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 whitespace-nowrap">
+          {% if u.is_approved %}
+          <span class="badge badge-success">Approved</span>
+          {% else %}
+          <span class="badge badge-warning">Pending</span>
+          {% endif %}
+          {% if not u.is_active %}<span class="ml-1 badge badge-error">Inactive</span>{% endif %}
+        </td>
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            {% if not u.is_approved %}
+            <form method="post" action="{% url 'portal:host_user_action' u.pk %}">
+              {% csrf_token %}<input type="hidden" name="action" value="approve"/>
+              <button class="h-btn h-btn-green text-xs" style="padding:3px 10px">Approve</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'portal:host_user_action' u.pk %}">
+              {% csrf_token %}<input type="hidden" name="action" value="toggle_active"/>
+              <button class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">
+                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+              </button>
+            </form>
+            <form method="post" action="{% url 'portal:host_user_action' u.pk %}" onsubmit="return confirm('Delete user {{ u.username }}?')">
+              {% csrf_token %}<input type="hidden" name="action" value="delete"/>
+              <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="px-5 py-12 text-center text-on-surface-variant">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if page.has_other_pages %}
+<div class="flex flex-wrap items-center justify-center gap-2 mt-6">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&q={{ q }}&role={{ current_role }}&status={{ current_status }}" class="h-btn h-btn-ghost text-xs">← Prev</a>{% endif %}
+  <span class="text-xs text-on-surface-variant">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}&q={{ q }}&role={{ current_role }}&status={{ current_status }}" class="h-btn h-btn-ghost text-xs">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

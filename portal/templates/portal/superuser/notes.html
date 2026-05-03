@@ -1,0 +1,37 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Notes{% endblock %}
+{% block breadcrumb %}Notes{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Manage Notes</h2></div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Add Note</h3>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Title *</label><input type="text" name="title" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Subject</label><input type="text" name="subject" class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Description</label><textarea name="description" rows="3" class="su-input resize-none"></textarea></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">File (PDF/doc)</label><input type="file" name="file" class="su-input"/></div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Add Note</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2 glass rounded-2xl overflow-hidden">
+    <div class="cn-table-wrap"><table class="w-full text-sm">
+      <thead><tr class="border-b border-outline-variant/10"><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Title</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Subject</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Actions</th></tr></thead>
+      <tbody class="divide-y divide-outline-variant/10">
+        {% for n in notes %}
+        <tr class="table-row">
+          <td class="px-4 py-3"><p class="font-semibold text-on-surface text-sm">{{ n.title }}</p><p class="text-xs text-on-surface-variant">{{ n.created_at|date:"M d, Y" }}</p></td>
+          <td class="px-4 py-3 text-xs text-on-surface-variant">{{ n.subject|default:"—" }}</td>
+          <td class="px-4 py-3">{% if n.is_active %}<span class="badge badge-approved">Active</span>{% else %}<span class="badge badge-pending">Hidden</span>{% endif %}</td>
+          <td class="px-4 py-3"><div class="flex gap-2">
+            <form method="post" action="{% url 'portal:su_note_toggle' n.pk %}">{% csrf_token %}<button type="submit" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">{% if n.is_active %}Hide{% else %}Show{% endif %}</button></form>
+            <form method="post" action="{% url 'portal:su_note_delete' n.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+          </div></td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="px-4 py-8 text-center text-on-surface-variant">No notes yet.</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}

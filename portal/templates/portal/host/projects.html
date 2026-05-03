@@ -1,0 +1,73 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Client Projects{% endblock %}
+{% block breadcrumb %}Client Projects{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="form-card">
+    <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> New Project</div>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <select name="client_id" required class="h-input">
+        <option value="">Select Client *</option>
+        {% for c in clients %}<option value="{{ c.pk }}">{{ c.username }} ({{ c.email }})</option>{% endfor %}
+      </select>
+      <input type="text" name="title" required placeholder="Project title *" class="h-input"/>
+      <textarea name="description" rows="2" placeholder="Description…" class="h-input resize-none"></textarea>
+      <select name="status" class="h-input">
+        {% for val, label in status_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+      </select>
+      <div class="flex gap-2">
+        <div class="flex-1"><label class="block text-xs text-white-variant mb-1">Progress %</label><input type="number" name="progress" min="0" max="100" value="0" class="h-input"/></div>
+      </div>
+      <input type="text" name="tech_stack" placeholder="Tech stack (e.g. Django, React)" class="h-input"/>
+      <input type="url" name="live_url" placeholder="Live preview URL" class="h-input"/>
+      <input type="url" name="demo_video_url" placeholder="Demo video URL" class="h-input"/>
+      <input type="date" name="deadline" class="h-input"/>
+      <button type="submit" class="w-full h-btn h-btn-primary justify-center">Create Project</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Projects ({{ page.paginator.count }})</h3>
+    <div class="space-y-3">
+      {% for p in page.object_list %}
+      <div class="glass-card rounded-xl p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="material-symbols-outlined fill-icon text-primary flex-shrink-0">folder_open</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-on-surface">{{ p.title }}</p>
+            <p class="text-xs text-on-surface-variant">{{ p.client.username }} · {{ p.get_status_display }} · {{ p.progress }}%</p>
+            {% if p.live_url %}<a href="{{ p.live_url }}" target="_blank" class="text-xs text-secondary hover:underline">🔗 Live Preview</a>{% endif %}
+            {% if p.demo_video_url %}<a href="{{ p.demo_video_url }}" target="_blank" class="text-xs text-primary hover:underline ml-2">🎥 Demo Video</a>{% endif %}
+          </div>
+        </div>
+        <!-- Update form -->
+        <details class="mt-2">
+          <summary class="text-xs text-primary cursor-pointer font-semibold">Edit Project</summary>
+          <form method="post" action="{% url 'portal:host_project_update' p.pk %}" class="mt-3 space-y-2">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-2">
+              <select name="status" class="h-input text-xs">
+                {% for val, label in status_choices %}<option value="{{ val }}" {% if p.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <input type="number" name="progress" value="{{ p.progress }}" min="0" max="100" class="h-input text-xs"/>
+            </div>
+            <input type="url" name="live_url" value="{{ p.live_url }}" placeholder="Live URL" class="h-input text-xs"/>
+            <input type="url" name="demo_video_url" value="{{ p.demo_video_url }}" placeholder="Demo Video URL" class="h-input text-xs"/>
+            <textarea name="notes" rows="2" placeholder="Internal notes…" class="h-input resize-none text-xs">{{ p.notes }}</textarea>
+            <div class="flex gap-2">
+              <button type="submit" class="h-btn h-btn-primary text-xs">Save</button>
+              <form method="post" action="{% url 'portal:host_project_delete' p.pk %}" onsubmit="return confirm('Delete?')" style="display:inline">
+                {% csrf_token %}
+                <button class="h-btn h-btn-danger text-xs">Delete</button>
+              </form>
+            </div>
+          </form>
+        </details>
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No projects yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

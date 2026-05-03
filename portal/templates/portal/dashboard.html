@@ -1,0 +1,120 @@
+{% extends "portal/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero greeting -->
+<div class="mb-8">
+  <h2 class="text-3xl font-bold tracking-tight text-on-surface mb-1">
+    Good day, {{ user.get_full_name }} 👋
+  </h2>
+  <p class="text-on-surface-variant text-sm">Here's an overview of your academic progress.</p>
+</div>
+
+<!-- Stats row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  {% include "portal/_stat_card.html" with icon="assignment" label="Total Assignments" value=total_assignments color="from-primary to-primary-container" %}
+  {% include "portal/_stat_card.html" with icon="pending_actions" label="Pending Submissions" value=pending_assignments color="from-error to-error-container" %}
+  {% include "portal/_stat_card.html" with icon="quiz" label="Quizzes Available" value=total_quizzes color="from-tertiary to-tertiary-container" %}
+  {% include "portal/_stat_card.html" with icon="school" label="Topics Completed" value=topics_done color="from-secondary to-secondary-container" %}
+</div>
+
+<!-- Main grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Performance card -->
+  <div class="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-6 editorial-shadow">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 class="text-lg font-bold text-on-surface">Overall Performance</h3>
+        <p class="text-xs text-on-surface-variant">Across all modules</p>
+      </div>
+      <span class="text-3xl font-black text-primary">{{ perf.overall|floatformat:0 }}%</span>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+          <span>Quiz Performance</span><span>{{ perf.quiz_avg|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-track h-2"><div class="progress-fill h-2" style="width: {{ perf.quiz_avg }}%"></div></div>
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+          <span>Assignment Scores</span><span>{{ perf.assignment_avg|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-track h-2"><div class="progress-fill h-2" style="width: {{ perf.assignment_avg }}%"></div></div>
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+          <span>Overall Score</span><span>{{ perf.overall|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-track h-3"><div class="progress-fill h-3" style="width: {{ perf.overall }}%"></div></div>
+      </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-2 gap-3">
+      <a href="{% url 'portal:quizzes' %}" class="flex items-center gap-2 bg-surface-container-low rounded-xl px-4 py-3 hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-primary text-lg">quiz</span>
+        <span class="text-sm font-medium text-on-surface">Attempt a Quiz</span>
+      </a>
+      <a href="{% url 'portal:performance' %}" class="flex items-center gap-2 bg-surface-container-low rounded-xl px-4 py-3 hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-secondary text-lg">insights</span>
+        <span class="text-sm font-medium text-on-surface">Full Report</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="space-y-4">
+
+    <!-- Today's topic -->
+    <div class="bg-surface-container-lowest rounded-2xl p-5 editorial-shadow">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined fill-icon text-primary">today</span>
+        <h3 class="text-sm font-bold text-on-surface uppercase tracking-wider">Today's Topic</h3>
+      </div>
+      {% if today_topic %}
+      <p class="text-base font-bold text-on-surface mb-1">{{ today_topic.title }}</p>
+      {% if today_topic.subject %}<span class="text-xs text-on-surface-variant badge-info px-2 py-0.5 rounded-full font-semibold">{{ today_topic.subject }}</span>{% endif %}
+      <p class="text-xs text-on-surface-variant mt-2 leading-relaxed">{{ today_topic.content|truncatechars:120 }}</p>
+      <a href="{% url 'portal:learning' %}" class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+        Study now <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+      {% else %}
+      <p class="text-sm text-on-surface-variant">No topic posted yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-surface-container-lowest rounded-2xl p-5 editorial-shadow">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined fill-icon text-tertiary">notifications</span>
+          <h3 class="text-sm font-bold text-on-surface uppercase tracking-wider">Announcements</h3>
+        </div>
+        <a href="{% url 'portal:notifications' %}" class="text-xs text-primary font-semibold hover:underline">All</a>
+      </div>
+      {% if notifications %}
+      <div class="space-y-2">
+        {% for n in notifications %}
+        <div class="flex items-start gap-2.5">
+          <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0
+            {% if n.priority == 'success' %}bg-secondary
+            {% elif n.priority == 'error' %}bg-error
+            {% elif n.priority == 'warning' %}bg-yellow-500
+            {% else %}bg-primary{% endif %}"></span>
+          <div>
+            <p class="text-xs font-semibold text-on-surface">{{ n.title }}</p>
+            <p class="text-xs text-on-surface-variant">{{ n.body|truncatechars:60 }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-on-surface-variant">No announcements.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

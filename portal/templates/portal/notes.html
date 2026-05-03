@@ -1,0 +1,57 @@
+{% extends "portal/base.html" %}
+{% block title %}Notes{% endblock %}
+{% block breadcrumb %}Notes{% endblock %}
+{% block content %}
+<div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+  <div>
+    <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Study Notes</h2>
+    <p class="text-on-surface-variant text-sm">All course notes published by your instructors.</p>
+  </div>
+  <form method="get" class="flex items-center gap-2">
+    <select name="subject" onchange="this.form.submit()"
+      class="bg-surface-container rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 border-0 transition-all appearance-none">
+      <option value="">All Subjects</option>
+      {% for s in subjects %}
+      <option value="{{ s }}" {% if s == current_subject %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+{% if notes %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+  {% for note in notes %}
+  <div class="glass-card rounded-2xl p-6 flex flex-col hover:border-primary/20 transition-all">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-primary fill-icon text-lg">description</span>
+      </div>
+      {% if note.subject %}<span class="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-semibold">{{ note.subject }}</span>{% endif %}
+    </div>
+    <h3 class="font-headline font-bold text-on-surface mb-2">{{ note.title }}</h3>
+    {% if note.description %}
+    <p class="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">{{ note.description|truncatechars:140 }}</p>
+    {% else %}
+    <p class="text-sm text-on-surface-variant mb-4 flex-1 italic">No description provided.</p>
+    {% endif %}
+    <div class="flex items-center justify-between pt-3 mt-auto border-t border-outline-variant/10">
+      <span class="text-xs text-on-surface-variant">{{ note.created_at|date:"M d, Y" }}</span>
+      {% if note.file %}
+      <a href="{% url 'portal:note_download' note.pk %}"
+        class="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-black transition-all">
+        <span class="material-symbols-outlined text-sm">download</span> Download
+      </a>
+      {% else %}
+      <span class="text-xs text-on-surface-variant italic">No file</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">description</span>
+  <p class="text-on-surface-variant font-semibold">No notes available yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Check back when your instructor adds course materials.</p>
+</div>
+{% endif %}
+{% endblock %}

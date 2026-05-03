@@ -1,0 +1,55 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block breadcrumb %}Notifications{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="form-card">
+    <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_alert</span> Post Notification</div>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <input type="text" name="title" required placeholder="Notification title *" class="h-input"/>
+      <textarea name="body" required rows="3" placeholder="Message body *" class="h-input resize-none"></textarea>
+      <select name="priority" class="h-input">
+        {% for val, label in priority_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+      </select>
+      <select name="target_role" class="h-input">
+        {% for val, label in role_choices %}<option value="{{ val }}">{% if val %}{{ label }} only{% else %}All Roles{% endif %}</option>{% endfor %}
+      </select>
+      <button type="submit" class="w-full h-btn h-btn-primary justify-center">
+        <span class="material-symbols-outlined text-base">campaign</span> Publish Notification
+      </button>
+    </form>
+  </div>
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Notifications ({{ page.paginator.count }})</h3>
+    <div class="space-y-2">
+      {% for n in page.object_list %}
+      <div class="glass-card rounded-xl p-4 flex items-start gap-3">
+        <span class="material-symbols-outlined fill-icon flex-shrink-0 mt-0.5
+          {% if n.priority == 'urgent' %}text-error{% elif n.priority == 'warning' %}text-yellow-400{% else %}text-primary{% endif %}">
+          {% if n.priority == 'urgent' %}warning{% else %}notifications{% endif %}
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-on-surface">{{ n.title }}</p>
+          <p class="text-xs text-on-surface-variant truncate">{{ n.body|truncatechars:80 }}</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">{{ n.created_at|date:"M d, Y" }} · {{ n.get_priority_display }} · {% if n.target_role %}{{ n.target_role }}{% else %}All{% endif %}</p>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <form method="post" action="{% url 'portal:host_notification_toggle' n.pk %}">
+            {% csrf_token %}
+            <button class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">{% if n.is_active %}Hide{% else %}Show{% endif %}</button>
+          </form>
+          <form method="post" action="{% url 'portal:host_notification_delete' n.pk %}" onsubmit="return confirm('Delete?')">
+            {% csrf_token %}
+            <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Del</button>
+          </form>
+        </div>
+        {% if not n.is_active %}<span class="badge badge-warning text-[10px] flex-shrink-0">Hidden</span>{% endif %}
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No notifications yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

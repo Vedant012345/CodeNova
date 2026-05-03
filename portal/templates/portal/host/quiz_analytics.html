@@ -1,0 +1,162 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Quiz Analytics{% endblock %}
+{% block breadcrumb %}Quizzes → Analytics{% endblock %}
+{% block content %}
+
+<!-- ── Page Header ─────────────────────────────────────────────────────────── -->
+<div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+  <div>
+    <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Quiz Analytics</h2>
+    <p class="text-on-surface-variant text-sm">Full student performance breakdown — scores, correct & wrong answers per quiz.</p>
+  </div>
+  <a href="{% url 'portal:host_quizzes' %}"
+     class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-on-surface-variant bg-surface-container hover:bg-surface-container-high transition-all">
+    <span class="material-symbols-outlined text-base">arrow_back</span> Back to Quizzes
+  </a>
+</div>
+
+<!-- ── Quiz Filter ─────────────────────────────────────────────────────────── -->
+<div class="glass-card rounded-2xl p-5 mb-6">
+  <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Filter by Quiz</p>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'portal:host_quiz_analytics' %}"
+       class="px-4 py-1.5 rounded-full text-xs font-bold transition-all
+              {% if not selected_quiz %}gradient-bg text-black{% else %}bg-surface-container text-on-surface-variant hover:bg-surface-container-high{% endif %}">
+      All Quizzes
+    </a>
+    {% for q in quizzes %}
+    <a href="{% url 'portal:host_quiz_analytics_quiz' q.pk %}"
+       class="px-4 py-1.5 rounded-full text-xs font-bold transition-all
+              {% if selected_quiz.pk == q.pk %}gradient-bg text-black{% else %}bg-surface-container text-on-surface-variant hover:bg-surface-container-high{% endif %}">
+      {{ q.title }}{% if q.is_ai_generated %} <span class="opacity-60">[AI]</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── Summary Stats ──────────────────────────────────────────────────────── -->
+<div class="grid grid-cols-3 gap-4 mb-8">
+  <div class="glass-card rounded-2xl p-5 text-center">
+    <p class="text-2xl font-extrabold font-headline text-primary">{{ analytics|length }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Total Attempts</p>
+  </div>
+  <div class="glass-card rounded-2xl p-5 text-center">
+    <p class="text-2xl font-extrabold font-headline text-green-400">
+      {% with total=analytics|length %}
+        {% if total %}
+          {% widthratio analytics|length 1 1 %}
+        {% else %}0{% endif %}
+      {% endwith %}
+      <!-- Show count of passing (>=50%) -->
+      {{ analytics|length }}
+    </p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Students</p>
+  </div>
+  <div class="glass-card rounded-2xl p-5 text-center">
+    <p class="text-2xl font-extrabold font-headline text-secondary">
+      {% if selected_quiz %}1{% else %}{{ quizzes|length }}{% endif %}
+    </p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Quizzes</p>
+  </div>
+</div>
+
+<!-- ── Analytics Table ────────────────────────────────────────────────────── -->
+{% if analytics %}
+<div class="space-y-6">
+  {% for item in analytics %}
+  <div class="glass-card rounded-2xl overflow-hidden">
+    <!-- Student + Quiz Header -->
+    <div class="flex items-center justify-between gap-4 p-5 bg-surface-container/50 flex-wrap">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full gradient-bg flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
+          {{ item.student.username|first|upper }}
+        </div>
+        <div>
+          <p class="font-headline font-bold text-on-surface">{{ item.student.get_full_name|default:item.student.username }}</p>
+          <p class="text-xs text-on-surface-variant">@{{ item.student.username }}</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-on-surface-variant mb-0.5">{{ item.quiz.title }}</p>
+        <p class="text-xs text-on-surface-variant/60">{{ item.result.taken_at|date:"M d, Y H:i" }}</p>
+      </div>
+      <!-- Score badges -->
+      <div class="flex items-center gap-3">
+        <div class="text-center px-4 py-2 rounded-xl {% if item.result.percentage >= 50 %}bg-green-900/30{% else %}bg-error/15{% endif %}">
+          <p class="text-lg font-extrabold font-headline {% if item.result.percentage >= 50 %}text-green-400{% else %}text-error{% endif %}">
+            {{ item.result.percentage|floatformat:0 }}%
+          </p>
+          <p class="text-xs text-on-surface-variant">{{ item.result.score }}/{{ item.result.total }} marks</p>
+        </div>
+        <div class="flex gap-2">
+          <span class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-900/20 text-green-400 text-xs font-bold">
+            <span class="material-symbols-outlined fill-icon text-sm">check_circle</span>
+            {{ item.correct_count }} correct
+          </span>
+          <span class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-error/10 text-error text-xs font-bold">
+            <span class="material-symbols-outlined fill-icon text-sm">cancel</span>
+            {{ item.wrong_count }} wrong
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-Question Breakdown -->
+    {% if item.answer_detail %}
+    <div class="p-5">
+      <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Answer Breakdown</p>
+      <div class="space-y-2">
+        {% for a in item.answer_detail %}
+        <div class="flex items-start gap-3 p-3 rounded-xl {% if a.is_correct %}bg-green-900/10 border border-green-700/20{% else %}bg-error/5 border border-error/10{% endif %}">
+          <!-- Status icon -->
+          <span class="material-symbols-outlined fill-icon text-base flex-shrink-0 mt-0.5 {% if a.is_correct %}text-green-400{% else %}text-error{% endif %}">
+            {% if a.is_correct %}check_circle{% else %}cancel{% endif %}
+          </span>
+          <div class="flex-1 min-w-0">
+            <!-- Question text -->
+            <p class="text-xs font-semibold text-on-surface mb-1.5 leading-snug">
+              Q{{ a.order }}. {{ a.question_text|truncatechars:120 }}
+            </p>
+            <div class="flex flex-wrap gap-3 text-xs">
+              <!-- Student answer -->
+              <span class="{% if a.is_correct %}text-green-400{% else %}text-error{% endif %}">
+                <span class="font-bold">Selected:</span>
+                {% if a.selected %}{{ a.selected }}. {{ a.selected_text|truncatechars:40 }}{% else %}— Not answered —{% endif %}
+              </span>
+              <!-- Correct answer (shown even if right, for clarity) -->
+              {% if not a.is_correct %}
+              <span class="text-green-400">
+                <span class="font-bold">Correct:</span> {{ a.correct }}. {{ a.correct_text|truncatechars:40 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Marks indicator -->
+          <span class="text-xs font-bold flex-shrink-0 {% if a.is_correct %}text-green-400{% else %}text-on-surface-variant/40{% endif %}">
+            {% if a.is_correct %}+{{ a.marks }}{% else %}0{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="p-5">
+      <p class="text-xs text-on-surface-variant/60 italic">
+        Detailed answer breakdown not available — this attempt was recorded before the v10 analytics update.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="text-center py-20 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">analytics</span>
+  <p class="text-on-surface-variant font-semibold">No quiz attempts yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Student results will appear here once quizzes are attempted.</p>
+</div>
+{% endif %}
+
+{% endblock %}

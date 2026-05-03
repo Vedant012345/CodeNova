@@ -1,0 +1,42 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block breadcrumb %}Notifications{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Notifications</h2><p class="text-on-surface-variant text-sm">Post announcements to users by role.</p></div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Post Notification</h3>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Title *</label><input type="text" name="title" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Message *</label><textarea name="body" rows="4" class="su-input resize-none" required></textarea></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Priority</label>
+        <select name="priority" class="su-input">{% for val,label in priority_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select>
+      </div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Target Role</label>
+        <select name="target_role" class="su-input">{% for val,label in role_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select>
+      </div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Post Notification</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2 glass rounded-2xl overflow-hidden">
+    <div class="cn-table-wrap"><table class="w-full text-sm">
+      <thead><tr class="border-b border-outline-variant/10"><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Title</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Target</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Priority</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Actions</th></tr></thead>
+      <tbody class="divide-y divide-outline-variant/10">
+        {% for n in notifs %}
+        <tr class="table-row">
+          <td class="px-4 py-3"><p class="font-semibold text-on-surface text-sm">{{ n.title }}</p><p class="text-xs text-on-surface-variant">{{ n.body|truncatechars:50 }}</p></td>
+          <td class="px-4 py-3 text-xs text-on-surface-variant">{{ n.target_role|default:"All" }}</td>
+          <td class="px-4 py-3"><span class="badge badge-{{ n.priority }}">{{ n.get_priority_display }}</span></td>
+          <td class="px-4 py-3">{% if n.is_active %}<span class="badge badge-approved">Active</span>{% else %}<span class="badge badge-pending">Hidden</span>{% endif %}</td>
+          <td class="px-4 py-3"><div class="flex gap-2">
+            <form method="post" action="{% url 'portal:su_notification_toggle' n.pk %}">{% csrf_token %}<button type="submit" class="su-btn su-btn-ghost" style="padding:4px 10px;font-size:11px;">{% if n.is_active %}Hide{% else %}Show{% endif %}</button></form>
+            <form method="post" action="{% url 'portal:su_notification_delete' n.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+          </div></td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">No notifications yet.</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}

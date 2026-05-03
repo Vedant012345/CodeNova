@@ -1,0 +1,92 @@
+{% extends "portal/base.html" %}
+{% block title %}Sign In{% endblock %}
+{% block auth_content %}
+<div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-[120px]"></div>
+  </div>
+  <div class="w-full max-w-4xl flex overflow-hidden rounded-2xl glass-card relative z-10">
+    <!-- Left form -->
+    <section class="flex-1 p-10 md:p-14">
+      <div class="flex items-center gap-2.5 mb-10">
+        <img src="/static/images/codenova_logo.png" alt="CodeNova" class="h-9 w-auto object-contain" style="max-width:160px;">
+      </div>
+      <h2 class="font-headline text-3xl font-extrabold mb-2 text-on-surface">Welcome back</h2>
+      {% if role_hint %}
+      <div class="flex items-center gap-2 mb-5 p-3 rounded-xl bg-primary/10 border border-primary/20">
+        <span class="material-symbols-outlined fill-icon text-primary text-base">
+          {% if role_hint == 'student' %}school{% elif role_hint == 'client' %}business_center{% else %}videocam{% endif %}
+        </span>
+        <p class="text-sm font-semibold text-primary">
+          {% if role_hint == 'student' %}Student Login{% elif role_hint == 'client' %}Client Login{% else %}Inquiry / Demo Login{% endif %}
+        </p>
+      </div>
+      {% endif %}
+      <p class="text-on-surface-variant text-sm mb-8">Sign in to continue your learning journey.</p>
+
+      {% if error %}
+      <div class="mb-5 p-4 rounded-xl bg-red-950/50 border border-red-800/30 text-sm text-red-400 flex items-start gap-2.5">
+        <span class="material-symbols-outlined fill-icon text-base mt-0.5 flex-shrink-0">error</span>
+        <div>
+          <p class="font-semibold">{{ error }}</p>
+          {% if show_support %}
+          <div class="mt-2 space-y-1">
+            <p class="text-xs text-red-300">Contact our support team:</p>
+            <p class="text-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-xs">mail</span> {{ support_email }}</p>
+            <p class="text-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-xs">phone</span> {{ support_phone }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if messages %}{% for msg in messages %}
+      <div class="mb-5 p-4 rounded-xl bg-green-950/50 border border-green-800/30 text-sm text-green-400 flex items-center gap-2">
+        <span class="material-symbols-outlined fill-icon text-base">check_circle</span>{{ msg }}
+      </div>
+      {% endfor %}{% endif %}
+
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Username</label>
+          <input type="text" name="username" placeholder="Enter your username" autocomplete="username"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Password</label>
+          <input type="password" name="password" placeholder="Your password" autocomplete="current-password"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+        <button type="submit" class="w-full py-3.5 rounded-full gradient-bg font-bold text-black text-sm hover:opacity-90 transition-all mt-2">
+          Sign In
+        </button>
+      </form>
+      <p class="mt-6 text-sm text-on-surface-variant text-center">
+        New here? <a href="{% url 'portal:register' %}" class="text-primary font-semibold hover:underline">Create an account</a>
+      </p>
+    </section>
+    <!-- Right panel -->
+    <aside class="hidden md:flex w-72 bg-gradient-to-br from-primary-dim to-secondary-dim flex-col items-center justify-center p-10 text-white">
+      <span class="material-symbols-outlined fill-icon text-6xl mb-5 text-white/90">school</span>
+      <h3 class="font-headline text-lg font-bold mb-3 text-center">Academic Sanctuary</h3>
+      <p class="text-sm text-white/70 text-center leading-relaxed mb-8">AI-powered quizzes, expert notes, chatbot tutor, and real-time progress tracking.</p>
+      <div class="space-y-2.5 w-full">
+        <div class="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2.5 text-sm font-medium">
+          <span class="material-symbols-outlined text-sm fill-icon">auto_awesome</span> AI Quiz Generator
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2.5 text-sm font-medium">
+          <span class="material-symbols-outlined text-sm fill-icon">smart_toy</span> AI Chatbot Tutor
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2.5 text-sm font-medium">
+          <span class="material-symbols-outlined text-sm fill-icon">insights</span> Performance Tracking
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2.5 text-sm font-medium">
+          <span class="material-symbols-outlined text-sm fill-icon">business_center</span> Client Projects
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

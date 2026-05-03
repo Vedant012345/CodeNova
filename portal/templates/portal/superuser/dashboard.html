@@ -1,0 +1,116 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Admin Dashboard</h2>
+  <p class="text-on-surface-variant text-sm">System overview and analytics.</p>
+</div>
+
+<!-- KPI Row 1 -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+  <div class="glass rounded-2xl p-5"><div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center mb-3"><span class="material-symbols-outlined text-primary fill-icon">group</span></div><p class="text-2xl font-extrabold font-headline">{{ total_users }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Users</p></div>
+  <div class="glass rounded-2xl p-5"><div class="w-9 h-9 bg-yellow-700/30 rounded-xl flex items-center justify-center mb-3"><span class="material-symbols-outlined text-yellow-400 fill-icon">pending</span></div><p class="text-2xl font-extrabold font-headline text-yellow-400">{{ pending_users }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Pending Approval</p></div>
+  <div class="glass rounded-2xl p-5"><div class="w-9 h-9 bg-secondary/15 rounded-xl flex items-center justify-center mb-3"><span class="material-symbols-outlined text-secondary fill-icon">quiz</span></div><p class="text-2xl font-extrabold font-headline">{{ quiz_attempts }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Quiz Attempts</p></div>
+  <div class="glass rounded-2xl p-5"><div class="w-9 h-9 bg-green-900/40 rounded-xl flex items-center justify-center mb-3"><span class="material-symbols-outlined text-green-400 fill-icon">task_alt</span></div><p class="text-2xl font-extrabold font-headline">{{ avg_quiz_score }}%</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Avg Quiz Score</p></div>
+</div>
+
+<!-- KPI Row 2 -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="glass rounded-2xl p-5"><p class="text-xl font-extrabold font-headline text-primary">{{ total_notes }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Notes</p></div>
+  <div class="glass rounded-2xl p-5"><p class="text-xl font-extrabold font-headline text-secondary">{{ total_quizzes }} <span class="text-sm text-on-surface-variant font-normal">({{ ai_quizzes }} AI)</span></p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Quizzes</p></div>
+  <div class="glass rounded-2xl p-5"><p class="text-xl font-extrabold font-headline text-primary">{{ contact_messages }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">New Messages</p></div>
+  <div class="glass rounded-2xl p-5"><p class="text-xl font-extrabold font-headline text-secondary">{{ upcoming_demos }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Upcoming Demos</p></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Pending users -->
+  <div class="lg:col-span-2 glass rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-yellow-400 fill-icon text-base">pending</span> Pending Approvals</h3>
+      {% if pending_list %}
+      <form method="post" action="{% url 'portal:su_bulk_approve' %}">
+        {% csrf_token %}
+        <button type="submit" class="su-btn su-btn-primary text-xs">Approve All ({{ pending_users }})</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if pending_list %}
+    <div class="space-y-2">
+      {% for u in pending_list %}
+      <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+        <div>
+          <p class="text-sm font-semibold text-on-surface">{{ u.username }} <span class="badge badge-{{ u.role }}">{{ u.get_role_display }}</span></p>
+          <p class="text-xs text-on-surface-variant">{{ u.email }} · {{ u.date_joined|date:"M d, Y" }}</p>
+        </div>
+        <div class="flex gap-2">
+          <form method="post" action="{% url 'portal:su_user_action' u.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="approve"/>
+            <input type="hidden" name="next" value="{% url 'portal:su_dashboard' %}"/>
+            <button type="submit" class="su-btn su-btn-primary" style="padding:4px 12px;font-size:11px;">Approve</button>
+          </form>
+          <form method="post" action="{% url 'portal:su_user_action' u.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject"/>
+            <input type="hidden" name="next" value="{% url 'portal:su_dashboard' %}"/>
+            <button type="submit" class="su-btn su-btn-danger" style="padding:4px 12px;font-size:11px;">Reject</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4">No pending approvals. 🎉</p>
+    {% endif %}
+  </div>
+
+  <!-- Right column -->
+  <div class="space-y-4">
+    <!-- Role breakdown -->
+    <div class="glass rounded-2xl p-5">
+      <h3 class="font-headline font-bold text-on-surface mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">pie_chart</span> Users by Role</h3>
+      <div class="space-y-2.5">
+        <div class="flex justify-between items-center"><span class="badge badge-student">Students</span><span class="text-sm font-bold text-on-surface">{{ role_counts.student|default:0 }}</span></div>
+        <div class="flex justify-between items-center"><span class="badge badge-client">Clients</span><span class="text-sm font-bold text-on-surface">{{ role_counts.client|default:0 }}</span></div>
+        <div class="flex justify-between items-center"><span class="badge badge-inquiry">Inquiry</span><span class="text-sm font-bold text-on-surface">{{ role_counts.inquiry|default:0 }}</span></div>
+        <div class="border-t border-outline-variant/10 pt-2 flex justify-between items-center"><span class="text-xs text-on-surface-variant">Approved</span><span class="text-sm font-bold text-green-400">{{ approved_users }}</span></div>
+      </div>
+    </div>
+    <!-- New contact messages -->
+    {% if new_messages %}
+    <div class="glass rounded-2xl p-5">
+      <h3 class="font-headline font-bold text-on-surface mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-base fill-icon">mail</span> New Messages</h3>
+      <div class="space-y-2">
+        {% for m in new_messages %}
+        <div class="p-2 bg-surface-container rounded-xl">
+          <p class="text-xs font-bold text-on-surface">{{ m.name }}</p>
+          <p class="text-xs text-on-surface-variant">{{ m.message|truncatechars:55 }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{% url 'portal:su_messages' %}" class="mt-3 block text-xs text-secondary font-semibold hover:underline">View all →</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent activity -->
+<div class="mt-6 glass rounded-2xl p-6">
+  <h3 class="font-headline font-bold text-on-surface mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">monitoring</span> Recent Activity</h3>
+  {% if recent_logs %}
+  <div class="space-y-1.5">
+    {% for log in recent_logs %}
+    <div class="flex items-center gap-3 p-2.5 bg-surface-container rounded-xl">
+      <span class="text-xs font-mono text-on-surface-variant flex-shrink-0">{{ log.timestamp|date:"H:i" }}</span>
+      <span class="badge badge-info text-[10px]">{{ log.action }}</span>
+      <p class="text-xs text-on-surface truncate flex-1">{% if log.user %}<span class="font-semibold">{{ log.user.username }}</span> — {% endif %}{{ log.detail|default:log.get_action_display }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  <a href="{% url 'portal:su_activity' %}" class="mt-3 block text-xs text-primary font-semibold hover:underline">Full activity log →</a>
+  {% else %}
+  <p class="text-sm text-on-surface-variant">No activity recorded yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Assignments{% endblock %}
+{% block breadcrumb %}Assignments{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="form-card">
+    <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> Create Assignment</div>
+    <form method="post" enctype="multipart/form-data" class="space-y-3">
+      {% csrf_token %}
+      <input type="text" name="title" required placeholder="Title *" class="h-input"/>
+      <input type="text" name="subject" placeholder="Subject" class="h-input"/>
+      <textarea name="description" rows="3" placeholder="Description…" class="h-input resize-none"></textarea>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Due Date</label>
+        <input type="datetime-local" name="due_date" class="h-input"/>
+      </div>
+      <input type="number" name="max_marks" placeholder="Max marks (default 100)" min="1" class="h-input"/>
+      <input type="file" name="attachment" class="h-input text-xs py-2"/>
+      <button type="submit" class="w-full h-btn h-btn-primary justify-center">Create Assignment</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Assignments ({{ page.paginator.count }})</h3>
+    <div class="space-y-2">
+      {% for a in page.object_list %}
+      <div class="glass-card rounded-xl p-4 flex items-start gap-3">
+        <span class="material-symbols-outlined fill-icon text-primary flex-shrink-0 mt-0.5">assignment</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-on-surface">{{ a.title }}</p>
+          <p class="text-xs text-on-surface-variant">{{ a.subject }} · {{ a.sub_count }} submission(s) · Due: {{ a.due_date|date:"M d, Y"|default:"No deadline" }}</p>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <a href="{% url 'portal:host_submissions' a.pk %}" class="h-btn h-btn-ghost text-xs" style="padding:3px 10px">Submissions</a>
+          <form method="post" action="{% url 'portal:host_assignment_delete' a.pk %}" onsubmit="return confirm('Delete?')">
+            {% csrf_token %}
+            <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Del</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No assignments yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

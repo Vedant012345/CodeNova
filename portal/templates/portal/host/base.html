@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>{% block title %}Host Dashboard{% endblock %} — CodeNova Host</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode:"class",
+  theme:{extend:{
+    colors:{
+      "primary":"#7c6fff","primary-dim":"#5a4fdb","secondary":"#4ecca3",
+      "tertiary":"#c084fc","surface":"#0c0f17",
+      "surface-container":"#181c27","surface-container-low":"#111520",
+      "surface-container-high":"#1e2330","surface-container-highest":"#252a38",
+      "on-surface":"#e8eaf6","on-surface-variant":"#9fa3b8",
+      "outline-variant":"#3a3d52","error":"#f28b82",
+    },
+    borderRadius:{"DEFAULT":"0.75rem","lg":"1rem","xl":"1.5rem","full":"9999px"},
+    fontFamily:{"headline":["Plus Jakarta Sans"],"body":["Inter"]},
+  }}
+}
+</script>
+<link rel="stylesheet" href="/static/css/dark-forms.css"/>
+<link rel="stylesheet" href="/static/css/responsive.css"/>
+<style>
+  body{font-family:'Inter',sans-serif;background:#0c0f17;color:#e8eaf6;}
+  .font-headline{font-family:'Plus Jakarta Sans',sans-serif;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .fill-icon{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .glass{background:rgba(24,28,39,0.8);backdrop-filter:blur(12px);border:1px solid rgba(124,111,255,0.1);}
+  .glass-card{background:rgba(24,28,39,0.7);border:1px solid rgba(124,111,255,0.1);}
+  .nav-active{background:#1e2330;color:#7c6fff;font-weight:600;}
+  .nav-item{transition:all 0.15s ease;}
+  .nav-item:hover{background:#181c27;transform:translateX(2px);}
+  .gradient-text{background:linear-gradient(135deg,#7c6fff,#4ecca3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .gradient-bg{background:linear-gradient(135deg,#3525cd,#5a4fdb);}
+  .h-input{width:100%;background:#0f1623;border:1px solid rgba(255,255,255,0.10);border-radius:0.75rem;padding:0.625rem 1rem;font-size:0.875rem;color:#ffffff;transition:all 0.15s;}
+  .h-input:focus{outline:none;border-color:rgba(124,111,255,0.55);box-shadow:0 0 0 3px rgba(53,37,205,0.14);}
+  .h-input::placeholder{color:rgba(255,255,255,0.42);}
+  select.h-input option{background:#0f1623;color:#ffffff;}
+  input,textarea,select{background:#0f1623;color:#ffffff;}
+  input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.42);}
+  input[type="radio"],input[type="checkbox"]{background:revert;color:revert;}
+  input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,select:-webkit-autofill{
+    -webkit-text-fill-color:#ffffff !important;
+    -webkit-box-shadow:0 0 0 1000px #0f1623 inset !important;
+    box-shadow:0 0 0 1000px #0f1623 inset !important;
+  }
+  .h-btn{padding:0.5rem 1.25rem;border-radius:9999px;font-size:0.875rem;font-weight:700;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:0.375rem;}
+  .h-btn-primary{background:linear-gradient(135deg,#3525cd,#5a4fdb);color:#fff;}
+  .h-btn-primary:hover{opacity:0.92;transform:translateY(-1px);box-shadow:0 8px 24px rgba(53,37,205,0.3);}
+  .h-btn-danger{background:rgba(242,139,130,0.12);color:#f28b82;border:1px solid rgba(242,139,130,0.2);}
+  .h-btn-danger:hover{background:rgba(242,139,130,0.22);}
+  .h-btn-ghost{background:#1e2330;color:#9fa3b8;border:1px solid rgba(58,61,82,0.4);}
+  .h-btn-ghost:hover{background:#252a38;color:#e8eaf6;}
+  .h-btn-green{background:rgba(78,204,163,0.12);color:#4ecca3;border:1px solid rgba(78,204,163,0.2);}
+  .h-btn-green:hover{background:rgba(78,204,163,0.22);}
+  .badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:700;}
+  .badge-student{background:rgba(182,160,255,0.15);color:#b6a0ff;}
+  .badge-client{background:rgba(0,175,254,0.15);color:#00affe;}
+  .badge-inquiry{background:rgba(255,108,149,0.15);color:#ff6c95;}
+  .badge-success{background:rgba(0,200,100,0.15);color:#00c864;}
+  .badge-warning{background:rgba(255,180,0,0.15);color:#ffb400;}
+  .badge-error{background:rgba(255,110,132,0.15);color:#ff6e84;}
+  .badge-info{background:rgba(182,160,255,0.15);color:#b6a0ff;}
+  .table-row{transition:background 0.1s;}
+  .table-row:hover{background:#161a21;}
+  .custom-scrollbar::-webkit-scrollbar{width:3px;}
+  .custom-scrollbar::-webkit-scrollbar-thumb{background:#22262f;border-radius:10px;}
+  .section-header{display:flex;align-items:center;gap:0.5rem;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1rem;margin-bottom:1rem;}
+  .form-card{background:#161a21;border:1px solid rgba(69,72,79,0.3);border-radius:1rem;padding:1.5rem;}
+  .stat-card{background:rgba(22,26,33,0.8);border:1px solid rgba(169,143,255,0.08);border-radius:1rem;padding:1.25rem;}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex">
+
+<!-- ── Sidebar backdrop (mobile) ───────────────────────────── -->
+<div id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<aside id="host-sidebar" class="cn-sidebar w-60 fixed left-0 top-0 h-screen bg-surface-container-low flex flex-col p-4 z-40 border-r border-outline-variant/10 custom-scrollbar overflow-y-auto">
+  <div class="mb-6 px-2 pt-1">
+    <div class="flex items-center gap-2 mb-0.5">
+      <img src="/static/images/codenova_logo.png" alt="CodeNova"
+           class="h-10 w-auto object-contain flex-shrink-0" style="max-width:120px;"
+           onerror="this.style.display='none';document.getElementById('cn-host-logo').style.display='flex';">
+      <span id="cn-host-logo" class="font-headline font-extrabold text-xl tracking-tight hidden"
+            style="background:linear-gradient(135deg,#7c6fff,#4ecca3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CodeNova</span>
+    </div>
+    <p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">Host Dashboard</p>
+  </div>
+
+  {% url 'portal:host_index' as h_home %}
+  {% url 'portal:host_users' as h_users %}
+  {% url 'portal:host_notes' as h_notes %}
+  {% url 'portal:host_quizzes' as h_quizzes %}
+  {% url 'portal:host_assignments' as h_assign %}
+  {% url 'portal:host_projects' as h_proj %}
+  {% url 'portal:host_demos' as h_demos %}
+  {% url 'portal:host_queries' as h_queries %}
+  {% url 'portal:host_courses' as h_courses %}
+  {% url 'portal:host_notifications' as h_notifs %}
+  {% url 'portal:host_ai_quiz' as h_ai_quiz %}
+  {% url 'portal:host_ai_chat' as h_ai_chat %}
+  {% url 'portal:host_contact_messages' as h_contact_msgs %}
+
+  <nav class="flex-1 space-y-0.5">
+    <div class="pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">Overview</p></div>
+    <a href="{{ h_home }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_home %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined fill-icon text-lg">dashboard</span><span class="text-sm">Dashboard</span>
+    </a>
+
+    <div class="pt-3 pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">🤖 AI Tools</p></div>
+    <a href="{{ h_ai_quiz }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_ai_quiz %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined fill-icon text-lg">auto_awesome</span>
+      <span class="text-sm">AI Quiz Generator</span>
+      <span class="ml-auto text-[9px] gradient-bg text-black font-bold px-1.5 py-0.5 rounded-full">AI</span>
+    </a>
+    <a href="{{ h_ai_chat }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_ai_chat %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined fill-icon text-lg">smart_toy</span>
+      <span class="text-sm">AI Chatbot Monitor</span>
+    </a>
+
+    <div class="pt-3 pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">Users & Comms</p></div>
+    <a href="{{ h_users }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_users %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">group</span><span class="text-sm">Users</span>
+    </a>
+    <a href="{{ h_queries }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_queries %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">help</span>
+      <span class="text-sm">Student Queries</span>
+      {% with open_q=open_query_count %}{% if open_q %}<span class="ml-auto text-[9px] bg-yellow-700/40 text-yellow-300 font-bold px-1.5 py-0.5 rounded-full">{{ open_q }}</span>{% endif %}{% endwith %}
+    </a>
+    <a href="{{ h_contact_msgs }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_contact_msgs %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">mail</span>
+      <span class="text-sm">Contact Messages</span>
+      {% with cnt=new_contact_count %}{% if cnt %}<span class="ml-auto text-[9px] bg-red-700/40 text-red-300 font-bold px-1.5 py-0.5 rounded-full">{{ cnt }}</span>{% endif %}{% endwith %}
+    </a>
+    <a href="{{ h_notifs }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_notifs %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">notifications</span><span class="text-sm">Notifications</span>
+    </a>
+
+    <div class="pt-3 pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">Content</p></div>
+    <a href="{{ h_courses }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_courses %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">menu_book</span><span class="text-sm">Courses & Topics</span>
+    </a>
+    <a href="{{ h_notes }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_notes %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">description</span><span class="text-sm">Notes</span>
+    </a>
+    <a href="{{ h_quizzes }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if 'host/quizzes' in request.path and 'analytics' not in request.path %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">quiz</span><span class="text-sm">Quizzes</span>
+    </a>
+    <a href="{% url 'portal:host_quiz_analytics' %}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if 'analytics' in request.path %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">analytics</span><span class="text-sm">Quiz Analytics</span>
+    </a>
+    <a href="{{ h_assign }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if 'host/assignments' in request.path %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">assignment</span><span class="text-sm">Assignments</span>
+    </a>
+
+    <div class="pt-3 pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">Business</p></div>
+    <a href="{{ h_proj }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_proj %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">folder_open</span><span class="text-sm">Client Projects</span>
+    </a>
+    <a href="{{ h_demos }}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl {% if request.path == h_demos %}nav-active{% else %}text-on-surface-variant{% endif %}">
+      <span class="material-symbols-outlined text-lg">videocam</span><span class="text-sm">Demo Sessions</span>
+    </a>
+
+    <div class="pt-3 pb-1 px-3"><p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-semibold">System</p></div>
+    <a href="/admin/" target="_blank" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant">
+      <span class="material-symbols-outlined text-lg">settings</span><span class="text-sm">Django Admin</span>
+      <span class="ml-auto material-symbols-outlined text-xs text-on-surface-variant/40">open_in_new</span>
+    </a>
+    <a href="{% url 'portal:su_dashboard' %}" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant">
+      <span class="material-symbols-outlined text-lg">admin_panel_settings</span><span class="text-sm">Old SU Panel</span>
+    </a>
+    <a href="{% url 'portal:host_logout' %}" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-error">
+      <span class="material-symbols-outlined text-lg">logout</span><span class="text-sm">Sign Out</span>
+    </a>
+  </nav>
+
+  <div class="mt-4 px-3 py-3 bg-surface-container rounded-xl flex items-center gap-2">
+    <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+      <span class="text-black font-bold text-xs">{{ request.user.username|first|upper }}</span>
+    </div>
+    <div class="min-w-0">
+      <p class="text-xs font-bold text-on-surface truncate">{{ request.user.username }}</p>
+      <p class="text-[10px] text-primary font-semibold">Host / Teacher</p>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main wrapper ─────────────────────────────────────────── -->
+<div class="host-main-wrap ml-60 flex-1 flex flex-col min-h-screen">
+
+  <!-- Top bar -->
+  <header class="host-topbar sticky top-0 z-30 bg-surface/80 backdrop-blur border-b border-outline-variant/10 px-4 sm:px-8 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <!-- Hamburger (mobile only) -->
+      <button id="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Open menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+      <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+        <a href="{% url 'portal:host_index' %}" class="hover:text-primary transition-colors font-semibold hidden sm:inline">Host</a>
+        <span class="material-symbols-outlined text-xs hidden sm:inline">chevron_right</span>
+        <span class="text-on-surface font-semibold truncate max-w-[140px] sm:max-w-none">{% block breadcrumb %}Dashboard{% endblock %}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-on-surface-variant hidden sm:inline">{{ request.user.get_full_name|default:request.user.username }}</span>
+      <div class="w-7 h-7 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+        <span class="text-black font-bold text-xs">{{ request.user.username|first|upper }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page content -->
+  <main class="flex-1 p-4 sm:p-6 md:p-8">
+    {% if messages %}
+    <div class="mb-5 space-y-2">
+      {% for msg in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm font-medium
+        {% if msg.tags == 'success' %}bg-green-900/30 text-green-300 border border-green-700/20
+        {% elif msg.tags == 'error' %}bg-error/10 text-error border border-error/20
+        {% else %}bg-primary/10 text-primary border border-primary/20{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+{% block extra_js %}{% endblock %}
+
+<script>
+/* ── Sidebar toggle (host panel) ── */
+const sidebar  = document.getElementById('host-sidebar');
+const backdrop = document.getElementById('sidebar-backdrop');
+const menuBtn  = document.getElementById('mobile-menu-btn');
+
+function openSidebar() {
+  if (!sidebar) return;
+  sidebar.classList.add('open');
+  backdrop && backdrop.classList.add('active');
+  menuBtn  && menuBtn.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  if (!sidebar) return;
+  sidebar.classList.remove('open');
+  backdrop && backdrop.classList.remove('active');
+  menuBtn  && menuBtn.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function toggleSidebar() {
+  sidebar && sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 768) {
+    backdrop && backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+    menuBtn  && menuBtn.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

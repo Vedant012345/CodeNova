@@ -1,0 +1,116 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Contact Messages{% endblock %}
+{% block breadcrumb %}Contact Messages{% endblock %}
+{% block content %}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">
+      Contact Messages
+      {% if unread_count %}
+      <span class="ml-2 text-sm bg-red-700/40 text-red-300 font-bold px-2 py-0.5 rounded-full align-middle">{{ unread_count }} new</span>
+      {% endif %}
+    </h2>
+    <p class="text-on-surface-variant text-sm">Messages submitted via the homepage "Get in Touch" form. Separate from student Ask-Question queries.</p>
+  </div>
+  <!-- Filter bar -->
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <a href="?status=" class="h-btn {% if not filter_status %}h-btn-primary{% else %}bg-surface-container text-on-surface-variant border border-outline-variant{% endif %} text-xs">All</a>
+    <a href="?status=new" class="h-btn {% if filter_status == 'new' %}h-btn-primary{% else %}bg-surface-container text-on-surface-variant border border-outline-variant{% endif %} text-xs">New</a>
+    <a href="?status=read" class="h-btn {% if filter_status == 'read' %}h-btn-primary{% else %}bg-surface-container text-on-surface-variant border border-outline-variant{% endif %} text-xs">Read</a>
+    <a href="?status=replied" class="h-btn {% if filter_status == 'replied' %}h-btn-primary{% else %}bg-surface-container text-on-surface-variant border border-outline-variant{% endif %} text-xs">Replied</a>
+  </div>
+</div>
+
+{% if page.object_list %}
+<div class="space-y-4">
+  {% for msg in page.object_list %}
+  <div class="glass-card rounded-2xl p-5 {% if msg.status == 'new' %}border border-primary/20{% endif %}">
+    <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+      <!-- Avatar / icon -->
+      <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined fill-icon text-primary text-base">person</span>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="font-headline font-bold text-on-surface">{{ msg.name }}</span>
+          <a href="mailto:{{ msg.email }}" class="text-xs text-primary hover:underline">{{ msg.email }}</a>
+          <!-- Status badge -->
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+            {% if msg.status == 'new' %}bg-red-700/40 text-red-300
+            {% elif msg.status == 'read' %}bg-surface-container text-on-surface-variant
+            {% else %}bg-green-800/40 text-green-400{% endif %}">
+            {{ msg.get_status_display|upper }}
+          </span>
+          <!-- Subject badge -->
+          <span class="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">{{ msg.get_subject_display }}</span>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-2">{{ msg.created_at|date:"M d, Y H:i" }} {% if msg.ip_address %}· {{ msg.ip_address }}{% endif %}</p>
+        <p class="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{{ msg.message }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col gap-1.5 flex-shrink-0 min-w-[110px]">
+        <!-- Mark as read/unread -->
+        {% if msg.status == 'new' %}
+        <form method="post" action="{% url 'portal:host_contact_mark_read' msg.pk %}">
+          {% csrf_token %}<input type="hidden" name="status" value="read"/>
+          <button class="w-full h-btn h-btn-primary text-xs justify-center">✓ Mark Read</button>
+        </form>
+        {% elif msg.status == 'read' %}
+        <form method="post" action="{% url 'portal:host_contact_mark_read' msg.pk %}">
+          {% csrf_token %}<input type="hidden" name="status" value="new"/>
+          <button class="w-full h-btn bg-surface-container text-on-surface-variant border border-outline-variant text-xs justify-center">↩ Mark Unread</button>
+        </form>
+        {% endif %}
+        <!-- Mark replied -->
+        {% if msg.status != 'replied' %}
+        <form method="post" action="{% url 'portal:host_contact_mark_read' msg.pk %}">
+          {% csrf_token %}<input type="hidden" name="status" value="replied"/>
+          <button class="w-full h-btn bg-green-900/40 text-green-400 border border-green-800/40 text-xs justify-center">✉ Replied</button>
+        </form>
+        {% endif %}
+        <!-- Reply by email shortcut -->
+        <a href="mailto:{{ msg.email }}?subject=Re: {{ msg.get_subject_display }}&body=Hello {{ msg.name }},%0D%0A%0D%0A"
+           class="w-full h-btn bg-surface-container text-on-surface-variant border border-outline-variant text-xs justify-center text-center">
+          📧 Reply
+        </a>
+        <!-- Delete -->
+        <form method="post" action="{% url 'portal:host_contact_delete' msg.pk %}" onsubmit="return confirm('Delete this message?')">
+          {% csrf_token %}
+          <button class="w-full h-btn h-btn-danger text-xs justify-center">🗑 Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page.has_other_pages %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if page.has_previous %}
+  <a href="?page={{ page.previous_page_number }}&status={{ filter_status }}" class="h-btn bg-surface-container text-on-surface-variant border border-outline-variant text-xs">← Prev</a>
+  {% endif %}
+  <span class="h-btn bg-primary/15 text-primary text-xs">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}
+  <a href="?page={{ page.next_page_number }}&status={{ filter_status }}" class="h-btn bg-surface-container text-on-surface-variant border border-outline-variant text-xs">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="glass-card rounded-2xl p-16 text-center">
+  <span class="material-symbols-outlined fill-icon text-on-surface-variant/30 text-6xl mb-4">mail</span>
+  <p class="text-on-surface-variant text-lg font-semibold">No messages
+    {% if filter_status %}with status "{{ filter_status }}"{% endif %}
+  </p>
+  {% if filter_status %}
+  <a href="?status=" class="mt-3 inline-block text-primary text-sm hover:underline">View all messages</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

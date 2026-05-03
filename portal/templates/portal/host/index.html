@@ -1,0 +1,236 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }} 👋</h2>
+  <p class="text-on-surface-variant text-sm">Here's what's happening on your platform today.</p>
+</div>
+
+<!-- KPI Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined fill-icon text-primary">group</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline">{{ stats.total_users }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Total Users</p>
+  </div>
+
+  <!-- CLICKABLE: Pending Users → /host/users/?status=pending -->
+  <a href="{% url 'portal:host_users' %}?status=pending"
+     class="stat-card cursor-pointer hover:border-yellow-500/30 hover:bg-yellow-900/10 transition-all group">
+    <div class="w-9 h-9 bg-yellow-700/30 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined fill-icon text-yellow-400">pending</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-yellow-400">{{ stats.pending_users }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Pending Approvals</p>
+    <p class="text-[10px] text-yellow-400/60 mt-1 group-hover:text-yellow-400/90 transition-colors">
+      Click to manage →
+    </p>
+  </a>
+
+  <!-- CLICKABLE: Open Questions → /host/queries/?status=open -->
+  <a href="{% url 'portal:host_queries' %}?status=open"
+     class="stat-card cursor-pointer hover:border-yellow-400/30 hover:bg-yellow-900/10 transition-all group">
+    <div class="w-9 h-9 bg-yellow-700/30 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined fill-icon text-yellow-300">help</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-yellow-300">{{ stats.open_queries }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Open Questions</p>
+    <p class="text-[10px] text-yellow-300/60 mt-1 group-hover:text-yellow-300/90 transition-colors">
+      Click to reply →
+    </p>
+  </a>
+
+  <div class="stat-card">
+    <div class="w-9 h-9 bg-green-900/40 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined fill-icon text-green-400">task_alt</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-green-400">{{ stats.quiz_attempts }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Quiz Attempts</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="stat-card"><p class="text-xl font-extrabold text-primary font-headline">{{ stats.total_notes }}</p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Notes</p></div>
+  <div class="stat-card"><p class="text-xl font-extrabold text-secondary font-headline">{{ stats.total_quizzes }} <span class="text-sm text-on-surface-variant font-normal">({{ stats.ai_quizzes }} AI)</span></p><p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Quizzes</p></div>
+  <!-- CLICKABLE: Upcoming Demos → host_demos -->
+  <a href="{% url 'portal:host_demos' %}" class="stat-card cursor-pointer hover:border-primary/20 transition-all group">
+    <p class="text-xl font-extrabold font-headline group-hover:text-primary transition-colors">{{ stats.upcoming_demos }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Upcoming Demos</p>
+    <p class="text-[10px] text-on-surface-variant/50 mt-1 group-hover:text-primary/60 transition-colors">Click to manage →</p>
+  </a>
+  <!-- CLICKABLE: Active Projects → host_projects -->
+  <a href="{% url 'portal:host_projects' %}" class="stat-card cursor-pointer hover:border-tertiary/20 transition-all group">
+    <p class="text-xl font-extrabold font-headline text-tertiary">{{ stats.active_projects }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">Active Projects</p>
+    <p class="text-[10px] text-on-surface-variant/50 mt-1 group-hover:text-tertiary/60 transition-colors">Click to manage →</p>
+  </a>
+  <!-- CLICKABLE: New Contact Messages → host_contact_messages — v9 -->
+  <a href="{% url 'portal:host_contact_messages' %}?status=new"
+     class="stat-card cursor-pointer hover:border-red-500/30 hover:bg-red-900/10 transition-all group col-span-2 md:col-span-1">
+    <div class="w-9 h-9 bg-red-900/30 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined fill-icon text-red-400">mail</span>
+    </div>
+    <p class="text-xl font-extrabold font-headline text-red-400">{{ stats.new_messages }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mt-1">New Messages</p>
+    <p class="text-[10px] text-red-400/60 mt-1 group-hover:text-red-400/90 transition-colors">Click to view →</p>
+  </a>
+</div>
+
+<!-- AI Tools Quick Access -->
+<div class="mb-8">
+  <div class="section-header">
+    <span class="material-symbols-outlined fill-icon text-primary">auto_awesome</span>
+    AI Tools
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <a href="{% url 'portal:host_ai_quiz' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
+      <div class="w-12 h-12 bg-primary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/25 transition-colors">
+        <span class="material-symbols-outlined fill-icon text-primary text-2xl">quiz</span>
+      </div>
+      <div class="flex-1">
+        <p class="font-headline font-bold text-on-surface">AI Quiz Generator</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">Generate MCQ quizzes from any topic using Groq LLM</p>
+      </div>
+      <span class="text-[10px] gradient-bg text-black font-bold px-2 py-1 rounded-full flex-shrink-0">AI</span>
+    </a>
+    <a href="{% url 'portal:host_ai_chat' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-secondary/30 transition-all group">
+      <div class="w-12 h-12 bg-secondary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/25 transition-colors">
+        <span class="material-symbols-outlined fill-icon text-secondary text-2xl">smart_toy</span>
+      </div>
+      <div class="flex-1">
+        <p class="font-headline font-bold text-on-surface">AI Chatbot Monitor</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">Review {{ stats.chat_messages }} student chat messages · test ScholarBot</p>
+      </div>
+      <span class="text-[10px] gradient-bg text-black font-bold px-2 py-1 rounded-full flex-shrink-0">AI</span>
+    </a>
+  </div>
+</div>
+
+<!-- 4-col grid: Pending, Queries, Contact Messages, Activity -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+  <!-- Pending Approvals -->
+  <div class="glass-card rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div class="section-header mb-0">
+        <span class="material-symbols-outlined fill-icon text-yellow-400 text-base">pending</span>
+        Pending Approvals
+      </div>
+      {% if pending_users %}
+      <form method="post" action="{% url 'portal:host_bulk_approve' %}">
+        {% csrf_token %}
+        <button class="h-btn h-btn-primary text-xs" style="padding:4px 12px">Approve All</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if pending_users %}
+    <div class="space-y-2">
+      {% for u in pending_users %}
+      <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+        <div class="min-w-0 flex-1 mr-2">
+          <p class="text-sm font-semibold text-on-surface truncate">{{ u.username }}</p>
+          <p class="text-xs text-on-surface-variant">{{ u.get_role_display }} · {{ u.date_joined|date:"M d" }}</p>
+        </div>
+        <div class="flex gap-1 flex-shrink-0">
+          <form method="post" action="{% url 'portal:host_user_action' u.pk %}">
+            {% csrf_token %}<input type="hidden" name="action" value="approve"/>
+            <input type="hidden" name="next" value="{% url 'portal:host_index' %}"/>
+            <button class="h-btn h-btn-green text-xs" style="padding:3px 10px">✓</button>
+          </form>
+          <form method="post" action="{% url 'portal:host_user_action' u.pk %}">
+            {% csrf_token %}<input type="hidden" name="action" value="reject"/>
+            <input type="hidden" name="next" value="{% url 'portal:host_index' %}"/>
+            <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">✗</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4 text-center">All users approved 🎉</p>
+    {% endif %}
+    <a href="{% url 'portal:host_users' %}" class="mt-3 text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+      View all users <span class="material-symbols-outlined text-xs">arrow_forward</span>
+    </a>
+  </div>
+
+  <!-- Open Queries -->
+  <div class="glass-card rounded-2xl p-5">
+    <div class="section-header">
+      <span class="material-symbols-outlined fill-icon text-yellow-300 text-base">help</span>
+      Open Questions
+    </div>
+    {% if open_queries %}
+    <div class="space-y-2">
+      {% for q in open_queries %}
+      <div class="p-3 bg-surface-container rounded-xl">
+        <p class="text-xs font-bold text-on-surface truncate">{{ q.subject|truncatechars:45 }}</p>
+        <p class="text-xs text-on-surface-variant">By <span class="text-primary font-semibold">{{ q.user.username }}</span> · {{ q.created_at|date:"M d" }}</p>
+        <p class="text-xs text-on-surface-variant mt-1 truncate">{{ q.question|truncatechars:60 }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4 text-center">No open queries 🎉</p>
+    {% endif %}
+    <a href="{% url 'portal:host_queries' %}" class="mt-3 text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+      Manage queries <span class="material-symbols-outlined text-xs">arrow_forward</span>
+    </a>
+  </div>
+
+  <!-- v9: New Contact Messages preview -->
+  <div class="glass-card rounded-2xl p-5">
+    <div class="section-header">
+      <span class="material-symbols-outlined fill-icon text-red-400 text-base">mail</span>
+      New Contact Messages
+    </div>
+    {% if new_contact_msgs %}
+    <div class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar">
+      {% for msg in new_contact_msgs %}
+      <div class="p-3 bg-surface-container rounded-xl">
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <span class="text-xs font-bold text-on-surface">{{ msg.name }}</span>
+          <span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{{ msg.get_subject_display }}</span>
+        </div>
+        <p class="text-xs text-on-surface-variant">{{ msg.email }}</p>
+        <p class="text-xs text-on-surface-variant mt-1 truncate">{{ msg.message|truncatechars:55 }}</p>
+        <p class="text-[10px] text-on-surface-variant/50 mt-1">{{ msg.created_at|date:"M d, H:i" }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4 text-center">No new messages 🎉</p>
+    {% endif %}
+    <a href="{% url 'portal:host_contact_messages' %}" class="mt-3 text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+      View all messages <span class="material-symbols-outlined text-xs">arrow_forward</span>
+    </a>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="glass-card rounded-2xl p-5">
+    <div class="section-header">
+      <span class="material-symbols-outlined text-secondary text-base">monitoring</span>
+      Recent Activity
+    </div>
+    {% if recent_logs %}
+    <div class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar">
+      {% for log in recent_logs %}
+      <div class="flex items-start gap-2 p-2.5 bg-surface-container rounded-xl">
+        <span class="material-symbols-outlined fill-icon text-on-surface-variant/50 text-sm mt-0.5 flex-shrink-0">fiber_manual_record</span>
+        <div class="min-w-0">
+          <p class="text-xs text-on-surface font-medium truncate">{{ log.detail|default:log.action|truncatechars:50 }}</p>
+          <p class="text-[10px] text-on-surface-variant">{{ log.user.username|default:"system" }} · {{ log.timestamp|date:"M d H:i" }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4">No activity yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

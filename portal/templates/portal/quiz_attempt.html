@@ -1,0 +1,90 @@
+{% extends "portal/base.html" %}
+{% load portal_tags %}
+{% block title %}{{ quiz.title }}{% endblock %}
+{% block breadcrumb %}Quizzes → Attempt{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <!-- Quiz header -->
+  <div class="glass-card rounded-2xl p-6 mb-6">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-xl {% if quiz.is_ai_generated %}bg-secondary/15{% else %}bg-primary/15{% endif %} flex items-center justify-center">
+        <span class="material-symbols-outlined fill-icon text-lg {% if quiz.is_ai_generated %}text-secondary{% else %}text-primary{% endif %}">
+          {% if quiz.is_ai_generated %}auto_awesome{% else %}quiz{% endif %}
+        </span>
+      </div>
+      <div>
+        <h2 class="font-headline font-bold text-on-surface">{{ quiz.title }}</h2>
+        {% if quiz.subject %}<p class="text-xs text-on-surface-variant">{{ quiz.subject }}</p>{% endif %}
+      </div>
+    </div>
+    {% if quiz.description %}<p class="text-sm text-on-surface-variant leading-relaxed mb-3">{{ quiz.description }}</p>{% endif %}
+    <div class="flex items-center gap-6 text-xs text-on-surface-variant">
+      <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">timer</span> {{ quiz.duration }} min</span>
+      <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">help</span> {{ questions|length }} questions</span>
+      <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">star</span> {{ quiz.total_marks }} marks</span>
+    </div>
+    <div class="mt-3 p-3 bg-yellow-900/20 border border-yellow-700/20 rounded-xl text-xs font-medium text-yellow-400 flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm fill-icon">warning</span>
+      One attempt only. Review answers before submitting.
+    </div>
+  </div>
+
+  {% if questions %}
+  <form method="post" id="quiz-form">
+    {% csrf_token %}
+    <div class="space-y-4">
+      {% for q in questions %}
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-start gap-3 mb-5">
+          <span class="w-7 h-7 rounded-full gradient-bg text-black text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{{ forloop.counter }}</span>
+          <p class="text-sm font-semibold text-on-surface leading-relaxed pt-0.5">{{ q.text }}</p>
+        </div>
+        <div class="space-y-2.5 ml-10">
+          {% for letter, text in q|options %}
+          <label class="flex items-center gap-3 p-3 rounded-xl bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors group">
+            <input type="radio" name="q_{{ q.id }}" value="{{ letter }}"
+              class="w-4 h-4 flex-shrink-0 option-radio accent-primary"/>
+            <span class="text-sm text-on-surface">
+              <span class="font-bold text-primary mr-1.5">{{ letter }}.</span>{{ text }}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Submit bar -->
+    <div class="mt-6 glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <p class="text-sm text-on-surface-variant">
+        <span id="answered-count" class="font-bold text-on-surface">0</span> / {{ questions|length }} answered
+      </p>
+      <div class="flex gap-3">
+        <a href="{% url 'portal:quizzes' %}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-on-surface-variant bg-surface-container hover:bg-surface-container-high transition-all">Cancel</a>
+        <button type="submit" class="px-6 py-2.5 rounded-full text-sm font-bold text-black gradient-bg hover:opacity-90 transition-all">Submit Quiz</button>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  <div class="text-center py-16 glass-card rounded-2xl">
+    <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 block mb-3">quiz</span>
+    <p class="text-on-surface-variant">No questions in this quiz yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% block extra_js %}
+<script>
+  const radios = document.querySelectorAll('.option-radio');
+  const countEl = document.getElementById('answered-count');
+  const answered = new Set();
+  radios.forEach(r => r.addEventListener('change', () => { answered.add(r.name); if(countEl) countEl.textContent = answered.size; }));
+  const form = document.getElementById('quiz-form');
+  if (form) form.addEventListener('submit', e => {
+    const total = parseInt('{{ questions|length }}');
+      if (answered.size < total) {
+        const remaining = total - answered.size;
+        if (!confirm(remaining + ' question(s) unanswered. Submit anyway?')) e.preventDefault();
+      }
+  });
+</script>
+{% endblock %}
+{% endblock %}

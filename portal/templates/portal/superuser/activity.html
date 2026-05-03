@@ -1,0 +1,29 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Activity Log{% endblock %}
+{% block breadcrumb %}Activity Log{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Activity Log</h2><p class="text-on-surface-variant text-sm">All user actions tracked by the system.</p></div>
+<div class="glass rounded-2xl overflow-hidden">
+  <div class="cn-table-wrap"><table class="w-full text-sm">
+    <thead><tr class="border-b border-outline-variant/10"><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Time</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">User</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Action</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Detail</th><th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">IP</th></tr></thead>
+    <tbody class="divide-y divide-outline-variant/10">
+      {% for log in page %}
+      <tr class="table-row">
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant whitespace-nowrap">{{ log.timestamp|date:"M d H:i" }}</td>
+        <td class="px-4 py-2.5"><p class="text-sm font-semibold text-on-surface">{% if log.user %}{{ log.user.username }}{% else %}<span class="text-on-surface-variant">anonymous</span>{% endif %}</p>{% if log.user %}<span class="badge badge-{{ log.user.role }} text-[10px]">{{ log.user.get_role_display }}</span>{% endif %}</td>
+        <td class="px-4 py-2.5"><span class="badge badge-info">{{ log.action }}</span></td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant max-w-xs">{{ log.detail|default:"—" }}</td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant font-mono">{{ log.ip_address|default:"—" }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">No activity yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% if page.has_other_pages %}
+  <div class="px-4 py-3 border-t border-outline-variant/10 flex items-center gap-3">
+    {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}" class="su-btn su-btn-ghost" style="padding:4px 12px;font-size:12px;">← Prev</a>{% endif %}
+    <span class="text-xs text-on-surface-variant">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}" class="su-btn su-btn-ghost" style="padding:4px 12px;font-size:12px;">Next →</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

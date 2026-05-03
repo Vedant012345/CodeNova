@@ -1,0 +1,157 @@
+{% extends "portal/base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block auth_content %}
+<div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/3 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/3 left-1/4 w-80 h-80 bg-primary/10 rounded-full blur-[120px]"></div>
+  </div>
+  <div class="w-full max-w-4xl flex overflow-hidden rounded-2xl glass-card relative z-10">
+    <!-- Left panel -->
+    <aside class="hidden md:flex w-72 bg-gradient-to-br from-secondary-dim to-primary-dim flex-col items-center justify-center p-10 text-white">
+      <span class="material-symbols-outlined fill-icon text-6xl mb-5 text-white/90">person_add</span>
+      <h3 class="font-headline text-lg font-bold mb-3 text-center">Join CodeNova</h3>
+      <p class="text-sm text-white/70 text-center leading-relaxed mb-6">Choose your role and get approved by an admin to unlock your personalised dashboard.</p>
+      <div class="space-y-3 w-full">
+        <div class="p-3 bg-white/10 rounded-xl"><p class="text-xs font-bold">Student</p><p class="text-xs text-white/60">AI quizzes, notes, chatbot</p></div>
+        <div class="p-3 bg-white/10 rounded-xl"><p class="text-xs font-bold">Client</p><p class="text-xs text-white/60">Project tracking & status</p></div>
+        <div class="p-3 bg-white/10 rounded-xl"><p class="text-xs font-bold">Inquiry / Demo</p><p class="text-xs text-white/60">Book a live demo session</p></div>
+      </div>
+    </aside>
+    <!-- Form -->
+    <section class="flex-1 p-10 md:p-14 overflow-y-auto">
+      <div class="flex items-center gap-2.5 mb-8">
+        <img src="/static/images/codenova_logo.png" alt="CodeNova" class="h-9 w-auto object-contain" style="max-width:160px;">
+      </div>
+      <h2 class="font-headline text-2xl font-extrabold mb-1 text-on-surface">Create your account</h2>
+      <p class="text-on-surface-variant text-sm mb-7">You'll be able to sign in after admin approval.</p>
+
+      {% if form.errors %}
+      <div class="mb-5 p-4 rounded-xl bg-red-950/50 border border-red-800/30 text-sm text-red-400">
+        {% for f, errors in form.errors.items %}{% for e in errors %}<p class="font-medium">{{ e }}</p>{% endfor %}{% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <!-- Role selector -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">I am a...</label>
+          <div class="grid grid-cols-3 gap-2" id="role-selector">
+            <label class="cursor-pointer">
+              <input type="radio" name="role" value="student" class="sr-only peer" {% if not form.role.value or form.role.value == 'student' %}checked{% endif %}/>
+              <div class="p-3 bg-surface-container rounded-xl text-center border border-outline-variant/10 peer-checked:border-primary peer-checked:bg-primary/10 transition-all">
+                <span class="material-symbols-outlined text-primary fill-icon block mb-1">school</span>
+                <p class="text-xs font-bold">Student</p>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="role" value="client" class="sr-only peer" {% if form.role.value == 'client' %}checked{% endif %}/>
+              <div class="p-3 bg-surface-container rounded-xl text-center border border-outline-variant/10 peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
+                <span class="material-symbols-outlined text-secondary fill-icon block mb-1">business_center</span>
+                <p class="text-xs font-bold">Client</p>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="role" value="inquiry" class="sr-only peer" {% if form.role.value == 'inquiry' %}checked{% endif %}/>
+              <div class="p-3 bg-surface-container rounded-xl text-center border border-outline-variant/10 peer-checked:border-primary peer-checked:bg-primary/10 transition-all">
+                <span class="material-symbols-outlined text-primary fill-icon block mb-1">videocam</span>
+                <p class="text-xs font-bold">Demo</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">First Name</label>
+            <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="First name"
+              class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Last Name</label>
+            <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="Last name"
+              class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Username</label>
+          <input type="text" name="username" value="{{ form.username.value|default:'' }}" placeholder="Choose a username" autocomplete="username"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Email</label>
+          <input type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="your@email.com"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Password</label>
+          <input type="password" name="password1" placeholder="Min 8 characters" autocomplete="new-password"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Confirm Password</label>
+          <input type="password" name="password2" placeholder="Repeat password" autocomplete="new-password"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0"/>
+        </div>
+
+        {# v8: Course selection at registration — shown ONLY for student role #}
+        <div id="course-selection-block" style="display:none;">
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            <span class="material-symbols-outlined text-xs align-middle text-primary fill-icon">school</span>
+            Select Your Course
+          </label>
+          {% if active_courses %}
+          <select name="course"
+            class="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all border-0">
+            <option value="">— Choose your course (optional) —</option>
+            {% for course in active_courses %}
+            <option value="{{ course.pk }}"
+              {% if form.data.course == course.pk|stringformat:"s" %}selected{% endif %}>
+              {{ course.title }}{% if course.level %} ({{ course.get_level_display }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="text-xs text-on-surface-variant mt-1.5">
+            💡 Selecting a course means you'll go straight to your dashboard after admin approval — no extra step needed.
+          </p>
+          {% else %}
+          <p class="text-xs text-on-surface-variant bg-surface-container rounded-xl px-4 py-3">
+            No courses available yet — an admin will assign your course after approval.
+          </p>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-full gradient-bg font-bold text-black text-sm hover:opacity-90 transition-all mt-2">
+          Create Account
+        </button>
+      </form>
+      <p class="mt-5 text-sm text-on-surface-variant text-center">
+        Already have an account? <a href="{% url 'portal:login' %}" class="text-primary font-semibold hover:underline">Sign in</a>
+      </p>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var block = document.getElementById('course-selection-block');
+  var radios = document.querySelectorAll('input[name="role"]');
+
+  function toggle() {
+    var checked = document.querySelector('input[name="role"]:checked');
+    if (checked && checked.value === 'student') {
+      block.style.display = '';
+    } else {
+      block.style.display = 'none';
+      // Clear selection so non-student form submissions don't send a course
+      var sel = block.querySelector('select[name="course"]');
+      if (sel) sel.value = '';
+    }
+  }
+
+  radios.forEach(function (r) { r.addEventListener('change', toggle); });
+  toggle(); // run immediately on page load
+})();
+</script>
+{% endblock %}

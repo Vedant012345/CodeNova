@@ -1,0 +1,68 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Demo Sessions{% endblock %}
+{% block breadcrumb %}Demo Sessions{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="form-card">
+    <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> Schedule Demo</div>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <select name="user_id" required class="h-input">
+        <option value="">Select Inquiry User *</option>
+        {% for u in inquirers %}<option value="{{ u.pk }}">{{ u.username }} ({{ u.email }})</option>{% endfor %}
+      </select>
+      <input type="text" name="title" placeholder="Session title" value="Demo Session" class="h-input"/>
+      <div><label class="block text-xs text-white-variant mb-1">Date & Time *</label><input type="datetime-local" name="scheduled_at" required class="h-input"/></div>
+      <select name="platform" class="h-input">
+        {% for val, label in platform_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input type="url" name="meeting_link" placeholder="Meeting link (Zoom/Meet URL)" class="h-input"/>
+      <input type="text" name="meeting_id" placeholder="Meeting ID / passcode" class="h-input"/>
+      <input type="url" name="video_url" placeholder="Recorded video URL (after session)" class="h-input"/>
+      <textarea name="description" rows="2" placeholder="Notes…" class="h-input resize-none"></textarea>
+      <button type="submit" class="w-full h-btn h-btn-primary justify-center">Schedule Demo</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Demo Sessions ({{ demos.count }})</h3>
+    <div class="space-y-3">
+      {% for d in demos %}
+      <div class="glass-card rounded-xl p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="material-symbols-outlined fill-icon text-secondary flex-shrink-0">videocam</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-on-surface">{{ d.title }}</p>
+            <p class="text-xs text-on-surface-variant">{{ d.inquiry_user.username }} · {{ d.scheduled_at|date:"M d, Y H:i" }} · {{ d.get_platform_display }}</p>
+            {% if d.meeting_link %}<a href="{{ d.meeting_link }}" target="_blank" class="text-xs text-primary hover:underline">📹 Join Meeting</a>{% endif %}
+            {% if d.video_url %}<a href="{{ d.video_url }}" target="_blank" class="text-xs text-secondary hover:underline ml-2">🎥 Recording</a>{% endif %}
+          </div>
+          <span class="badge {% if d.status == 'completed' %}badge-success{% elif d.status == 'cancelled' %}badge-error{% else %}badge-info{% endif %} flex-shrink-0">{{ d.get_status_display }}</span>
+        </div>
+        <details>
+          <summary class="text-xs text-primary cursor-pointer font-semibold">Update Status / Add Recording</summary>
+          <form method="post" action="{% url 'portal:host_demo_update' d.pk %}" class="mt-3 space-y-2">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-2">
+              <select name="status" class="h-input text-xs">
+                {% for val, label in status_choices %}<option value="{{ val }}" {% if d.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <input type="url" name="video_url" value="{{ d.video_url }}" placeholder="Recording URL" class="h-input text-xs"/>
+            </div>
+            <input type="url" name="meeting_link" value="{{ d.meeting_link }}" placeholder="Meeting link" class="h-input text-xs"/>
+            <div class="flex gap-2">
+              <button type="submit" class="h-btn h-btn-primary text-xs">Update</button>
+              <form method="post" action="{% url 'portal:host_demo_delete' d.pk %}" onsubmit="return confirm('Delete?')" style="display:inline">
+                {% csrf_token %}
+                <button class="h-btn h-btn-danger text-xs">Delete</button>
+              </form>
+            </div>
+          </form>
+        </details>
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No demo sessions yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

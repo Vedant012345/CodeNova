@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeNova — Learn & Build</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "secondary-container":"#006493","outline-variant":"#45484f",
+        "inverse-on-surface":"#52555c","secondary":"#00affe",
+        "surface-container-low":"#10131a","on-background":"#ecedf6",
+        "primary-fixed":"#a98fff","on-surface-variant":"#a9abb3",
+        "primary":"#b6a0ff","surface-variant":"#22262f",
+        "surface-dim":"#0b0e14","surface":"#0b0e14","on-secondary":"#002a42",
+        "surface-container":"#161a21","inverse-primary":"#6834eb",
+        "inverse-surface":"#f9f9ff","on-surface":"#ecedf6",
+        "surface-tint":"#b6a0ff","surface-container-high":"#1c2028",
+        "tertiary":"#ff6c95","background":"#0b0e14","on-primary":"#340090",
+        "secondary-fixed-dim":"#86cbff","primary-container":"#a98fff",
+        "primary-dim":"#7e51ff","secondary-dim":"#00a7f2",
+        "outline":"#73757d","surface-container-lowest":"#000000",
+        "error":"#ff6e84","on-primary-fixed-variant":"#32008a",
+        "surface-container-highest":"#22262f",
+      },
+      borderRadius: { "DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px" },
+      fontFamily: { "headline":["Plus Jakarta Sans"],"body":["Inter"],"label":["Inter"] }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="/static/css/dark-forms.css"/>
+<link rel="stylesheet" href="/static/css/responsive.css"/>
+<style>
+  .glass-card { background:rgba(28,32,40,0.6); backdrop-filter:blur(16px); border:1px solid rgba(169,143,255,0.1); }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  body { background-color:#0b0e14; color:#ecedf6; font-family:'Inter',sans-serif; }
+  .font-headline { font-family:'Plus Jakarta Sans',sans-serif; }
+  .gradient-text { background:linear-gradient(135deg,#b6a0ff,#00affe); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .gradient-bg { background:linear-gradient(135deg,#b6a0ff,#00affe); }
+  input, textarea, select {
+    background-color: #0f1623 !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.10) !important;
+  }
+  input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.42) !important; }
+  input:-webkit-autofill, input:-webkit-autofill:focus,
+  textarea:-webkit-autofill, select:-webkit-autofill {
+    -webkit-text-fill-color:#ffffff !important;
+    -webkit-box-shadow:0 0 0 1000px #0f1623 inset !important;
+  }
+  select option { background:#0f1623; color:#ffffff; }
+  .glow-primary { box-shadow:0 0 40px rgba(182,160,255,0.15); }
+  .ambient-shadow { box-shadow:0px 24px 48px rgba(0,0,0,0.4); }
+  .nav-blur { backdrop-filter:blur(20px); background:rgba(11,14,20,0.85); }
+  html { scroll-behavior:smooth; }
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────────────────── -->
+<header class="sticky top-0 w-full z-50 nav-blur border-b border-outline-variant/10 ambient-shadow">
+  <nav class="flex justify-between items-center px-5 md:px-10 py-4 max-w-7xl mx-auto">
+    <!-- Logo -->
+    <div class="flex items-center gap-2.5">
+      <img src="/static/images/codenova_logo.png" alt="CodeNova"
+           class="h-11 w-auto object-contain flex-shrink-0" style="max-width:140px;"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <span class="font-headline font-extrabold text-2xl tracking-tight hidden"
+            style="background:linear-gradient(135deg,#b6a0ff,#00affe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CodeNova</span>
+    </div>
+    <!-- Desktop links -->
+    <div class="hp-nav-desktop hidden md:flex items-center gap-8 text-sm font-medium">
+      <a href="#about"    class="text-on-surface-variant hover:text-white transition-colors">About</a>
+      <a href="#services" class="text-on-surface-variant hover:text-white transition-colors">Services</a>
+      <a href="#courses"  class="text-on-surface-variant hover:text-white transition-colors">Courses</a>
+      <a href="#projects" class="text-on-surface-variant hover:text-white transition-colors">Projects</a>
+      <a href="#contact"  class="text-on-surface-variant hover:text-white transition-colors">Contact</a>
+    </div>
+    <!-- Right: CTA + hamburger -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="{% url 'portal:login_choice' %}"
+        class="hidden sm:inline px-4 py-2 text-sm font-semibold text-on-surface-variant hover:text-white transition-colors">
+        Sign In
+      </a>
+      <a href="{% url 'portal:register_choice' %}"
+        class="px-4 py-2 gradient-bg rounded-full text-xs sm:text-sm font-bold text-black hover:opacity-90 active:scale-95 transition-all">
+        Get Started
+      </a>
+      <!-- Mobile hamburger -->
+      <button id="hp-hamburger" onclick="toggleHpNav()" aria-label="Menu">
+        <svg id="hp-icon-menu" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:#b6a0ff">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg id="hp-icon-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:#b6a0ff;display:none">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+  <!-- Mobile nav dropdown -->
+  <div id="hp-mobile-nav">
+    <a href="#about">About</a>
+    <a href="#services">Services</a>
+    <a href="#courses">Courses</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+    <a href="{% url 'portal:login_choice' %}">Sign In</a>
+    <a href="{% url 'portal:register_choice' %}" style="color:#b6a0ff;font-weight:600;">Get Started →</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+  <!-- Ambient blobs -->
+  <div class="absolute inset-0 z-0 pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-secondary/15 rounded-full blur-[140px]"></div>
+  </div>
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center pt-16">
+    <span class="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/15 text-secondary text-xs font-bold tracking-widest uppercase">
+      <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+      Now enrolling — 2026 cohort
+    </span>
+    <h1 class="font-headline text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.08]">
+      Learn to Build.<br/>
+      <span class="gradient-text">Ship Real Products.</span>
+    </h1>
+    <p class="text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+      CodeNova bridges the gap between classroom theory and industry-grade execution.
+      AI-powered quizzes, expert mentorship, and real-world projects — all in one platform.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a href="{% url 'portal:register' %}"
+        class="w-full sm:w-auto gradient-bg px-8 py-4 rounded-full font-bold text-black text-sm hover:opacity-90 transition-all ambient-shadow">
+        Start Learning Free
+      </a>
+      <a href="{% url 'portal:login' %}"
+        class="w-full sm:w-auto bg-surface-container-highest px-8 py-4 rounded-full font-bold text-sm border border-outline-variant/20 hover:bg-surface-container-high transition-all">
+        Sign In to Portal
+      </a>
+    </div>
+    <!-- Tech pills -->
+    <div class="mt-16 flex flex-wrap justify-center gap-8 opacity-40">
+      <div class="flex items-center gap-2 text-sm font-bold font-headline"><span class="material-symbols-outlined text-primary text-base">terminal</span> Python</div>
+      <div class="flex items-center gap-2 text-sm font-bold font-headline"><span class="material-symbols-outlined text-secondary text-base">psychology</span> AI / ML</div>
+      <div class="flex items-center gap-2 text-sm font-bold font-headline"><span class="material-symbols-outlined text-primary text-base">data_object</span> JavaScript</div>
+      <div class="flex items-center gap-2 text-sm font-bold font-headline"><span class="material-symbols-outlined text-secondary text-base">database</span> Django</div>
+      <div class="flex items-center gap-2 text-sm font-bold font-headline"><span class="material-symbols-outlined text-primary text-base">cloud</span> Cloud</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── About ─────────────────────────────────────────────────────────────── -->
+<section id="about" class="py-24 bg-surface-container-low">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <div>
+        <span class="text-secondary font-bold tracking-widest uppercase text-xs mb-4 block">The Journey</span>
+        <h2 class="font-headline text-4xl font-extrabold mb-6 leading-tight">
+          From Self-Taught Coder<br/>to Industry Mentor
+        </h2>
+        <p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+          I began my journey decoding C++ in a dusty college library. Today I build production-ready AI applications
+          and help aspiring developers navigate the exact steep learning curve I once faced.
+          My philosophy: <em>Learn by building, not just watching.</em>
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+  
+          <div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+            <span class="material-symbols-outlined text-primary mb-2 block">code</span>
+            <h4 class="font-bold text-sm mb-1">C++ & Algorithms</h4>
+            <p class="text-xs text-on-surface-variant">Low-level architecture and performance.</p>
+          </div>
+          <div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+            <span class="material-symbols-outlined text-secondary mb-2 block">smart_toy</span>
+            <h4 class="font-bold text-sm mb-1">AI / ML</h4>
+            <p class="text-xs text-on-surface-variant">Neural networks and NLP pipelines.</p>
+          </div>
+          <div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+            <span class="material-symbols-outlined text-primary mb-2 block">web</span>
+            <h4 class="font-bold text-sm mb-1">Full-Stack Web</h4>
+            <p class="text-xs text-on-surface-variant">Scalable Django and modern frontend.</p>
+          </div>
+          <div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+            <span class="material-symbols-outlined text-secondary mb-2 block">group</span>
+            <h4 class="font-bold text-sm mb-1">Mentorship</h4>
+            <p class="text-xs text-on-surface-variant">Personalised career roadmapping.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="glass-card p-6 rounded-xl col-span-2">
+          <div class="text-primary text-4xl font-extrabold font-headline mb-1">120+</div>
+          <div class="text-on-surface-variant text-sm font-medium">Students Mentored</div>
+        </div>
+        <div class="glass-card p-6 rounded-xl">
+          <div class="text-secondary text-3xl font-extrabold font-headline mb-1">98%</div>
+          <div class="text-on-surface-variant text-sm font-medium">Satisfaction Rate</div>
+        </div>
+        <div class="glass-card p-6 rounded-xl">
+          <div class="text-primary text-3xl font-extrabold font-headline mb-1">3</div>
+          <div class="text-on-surface-variant text-sm font-medium">User Roles</div>
+        </div>
+        <div class="glass-card p-6 rounded-xl col-span-2">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="material-symbols-outlined fill-icon text-secondary">smart_toy</span>
+            <span class="font-bold">AI-Powered Learning</span>
+          </div>
+          <p class="text-xs text-on-surface-variant">Generate quizzes instantly. Chat with an AI tutor 24/7. Track your growth automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Services ───────────────────────────────────────────────────────────── -->
+<section id="services" class="py-24 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <span class="text-secondary font-bold tracking-widest uppercase text-xs mb-3 block">What We Offer</span>
+      <h2 class="font-headline text-4xl font-extrabold mb-4">Three Ways to Engage</h2>
+      <p class="text-on-surface-variant max-w-xl mx-auto">Whether you're a student, a client with a project, or exploring what we offer — there's a path for you.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Student -->
+      <div class="glass-card p-8 rounded-2xl hover:border-primary/30 transition-all group">
+        <div class="w-12 h-12 bg-primary/15 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
+          <span class="material-symbols-outlined fill-icon text-primary">school</span>
+        </div>
+        <span class="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Student</span>
+        <h3 class="font-headline text-xl font-bold mb-3">Learn & Grow</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed mb-6">Access notes, quizzes, assignments, AI-powered quiz generation, and a personal chatbot tutor.</p>
+        <a href="{% url 'portal:register' %}?role=student"
+          class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:gap-3 transition-all">
+          Enrol as Student <span class="material-symbols-outlined text-base">arrow_forward</span>
+        </a>
+      </div>
+      <!-- Client -->
+      <div class="glass-card p-8 rounded-2xl hover:border-secondary/30 transition-all group">
+        <div class="w-12 h-12 bg-secondary/15 rounded-xl flex items-center justify-center mb-5 group-hover:bg-secondary/25 transition-colors">
+          <span class="material-symbols-outlined fill-icon text-secondary">business_center</span>
+        </div>
+        <span class="text-xs font-bold uppercase tracking-widest text-secondary mb-3 block">Client</span>
+        <h3 class="font-headline text-xl font-bold mb-3">Commission Work</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed mb-6">Track your project progress, team size, timeline, and deliverables in a dedicated client portal.</p>
+        <a href="{% url 'portal:register' %}?role=client"
+          class="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:gap-3 transition-all">
+          Start a Project <span class="material-symbols-outlined text-base">arrow_forward</span>
+        </a>
+      </div>
+      <!-- Inquiry -->
+      <div class="glass-card p-8 rounded-2xl hover:border-primary/30 transition-all group">
+        <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined fill-icon text-primary">videocam</span>
+        </div>
+        <span class="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Inquiry / Demo</span>
+        <h3 class="font-headline text-xl font-bold mb-3">Book a Demo</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed mb-6">Schedule a live demo session via Zoom or Google Meet. See what CodeNova can do for you.</p>
+        <a href="{% url 'portal:register' %}?role=inquiry"
+          class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:gap-3 transition-all">
+          Book Demo <span class="material-symbols-outlined text-base">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Projects Bento ─────────────────────────────────────────────────────── -->
+<!-- ── Current Courses (Dynamic) ──────────────────────────────────────────── -->
+<section id="courses" class="py-24 bg-surface-container-low">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <span class="text-primary font-bold tracking-widest uppercase text-xs mb-3 block">Curriculum</span>
+      <h2 class="font-headline text-4xl font-extrabold mb-4">Current Courses</h2>
+      <p class="text-on-surface-variant max-w-xl mx-auto">Enrol in one of our live cohorts. All courses are taught with hands-on projects and real mentorship.</p>
+    </div>
+    {% if active_courses %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for course in active_courses %}
+      <div class="glass-card rounded-2xl hover:border-primary/30 transition-all group flex flex-col overflow-hidden">
+        {# v9: Banner image — shown when available, icon fallback otherwise #}
+        {% if course.banner_image %}
+        <div class="w-full h-40 overflow-hidden relative flex-shrink-0">
+          <img src="{{ course.banner_image.url }}" alt="{{ course.title }}"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+          <div class="absolute bottom-3 left-4 flex items-center gap-2 flex-wrap">
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold backdrop-blur-sm
+              {% if course.level == 'beginner' %}bg-green-900/70 text-green-300
+              {% elif course.level == 'intermediate' %}bg-secondary/40 text-secondary
+              {% else %}bg-primary/40 text-primary{% endif %}">
+              {{ course.get_level_display }}
+            </span>
+            {% if course.subject %}
+            <span class="text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full">{{ course.subject }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <h3 class="font-headline text-lg font-bold mb-2 text-on-surface">{{ course.title }}</h3>
+          {% if course.description %}
+          <p class="text-on-surface-variant text-sm leading-relaxed mb-4 flex-1">{{ course.description|truncatechars:110 }}</p>
+          {% endif %}
+          <div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/10">
+            {% if course.duration %}
+            <span class="flex items-center gap-1 text-xs text-on-surface-variant">
+              <span class="material-symbols-outlined text-sm fill-icon">schedule</span>
+              {{ course.duration }}
+            </span>
+            {% endif %}
+            <a href="{% url 'portal:register' %}?role=student"
+              class="text-xs font-bold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+              Enrol Now <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+        {% else %}
+        {# Fallback: icon-based card (original layout preserved) #}
+        <div class="p-7 flex flex-col flex-1">
+          <div class="w-12 h-12 bg-primary/15 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors flex-shrink-0">
+            <span class="material-symbols-outlined fill-icon text-primary">{{ course.icon|default:"school" }}</span>
+          </div>
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold
+              {% if course.level == 'beginner' %}bg-green-900/40 text-green-400
+              {% elif course.level == 'intermediate' %}bg-secondary/15 text-secondary
+              {% else %}bg-primary/15 text-primary{% endif %}">
+              {{ course.get_level_display }}
+            </span>
+            {% if course.subject %}
+            <span class="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{{ course.subject }}</span>
+            {% endif %}
+          </div>
+          <h3 class="font-headline text-lg font-bold mb-2 text-on-surface">{{ course.title }}</h3>
+          {% if course.description %}
+          <p class="text-on-surface-variant text-sm leading-relaxed mb-4 flex-1">{{ course.description|truncatechars:110 }}</p>
+          {% endif %}
+          <div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/10">
+            {% if course.duration %}
+            <span class="flex items-center gap-1 text-xs text-on-surface-variant">
+              <span class="material-symbols-outlined text-sm fill-icon">schedule</span>
+              {{ course.duration }}
+            </span>
+            {% endif %}
+            <a href="{% url 'portal:register' %}?role=student"
+              class="text-xs font-bold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+              Enrol Now <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 glass-card rounded-2xl max-w-lg mx-auto">
+      <span class="material-symbols-outlined text-4xl text-on-surface-variant/30 block mb-3">menu_book</span>
+      <p class="text-on-surface-variant font-semibold">New cohort launching soon.</p>
+      <p class="text-sm text-on-surface-variant/60 mt-1">Register your interest below and we'll notify you.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── Active Projects (Dynamic) ──────────────────────────────────────────── -->
+<section id="projects" class="py-24 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <span class="text-secondary font-bold tracking-widest uppercase text-xs mb-3 block">Portfolio</span>
+      <h2 class="font-headline text-4xl font-extrabold mb-4">Active Projects</h2>
+      <p class="text-on-surface-variant max-w-xl mx-auto">Real work we're shipping for real clients — live and in progress.</p>
+    </div>
+    {% if active_projects %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for proj in active_projects %}
+      <div class="glass-card p-7 rounded-2xl hover:border-secondary/20 transition-all flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs px-2.5 py-0.5 rounded-full font-bold
+            {% if proj.status == 'completed' %}bg-green-900/40 text-green-400
+            {% elif proj.status == 'in_progress' %}bg-primary/15 text-primary
+            {% elif proj.status == 'review' %}bg-secondary/15 text-secondary
+            {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+            {{ proj.get_status_display }}
+          </span>
+          <span class="text-xs text-on-surface-variant font-semibold">{{ proj.progress }}% done</span>
+        </div>
+        <h3 class="font-headline text-lg font-bold mb-2 text-on-surface">{{ proj.title }}</h3>
+        {% if proj.description %}
+        <p class="text-on-surface-variant text-sm leading-relaxed mb-4 flex-1">{{ proj.description|truncatechars:100 }}</p>
+        {% endif %}
+        <!-- Progress bar -->
+        <div class="w-full h-1.5 bg-surface-container rounded-full mt-auto mb-3">
+          <div class="h-1.5 rounded-full gradient-bg" style="width:{{ proj.progress }}%;min-width:0px"></div>
+        </div>
+        <div class="flex flex-wrap gap-2 text-xs">
+          {% if proj.tech_stack %}
+          {% for tech in proj.tech_stack.split|slice:":3" %}
+          <span class="bg-surface-container px-2.5 py-0.5 rounded-full font-medium text-on-surface-variant">{{ tech|cut:"," }}</span>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 glass-card rounded-2xl max-w-lg mx-auto">
+      <span class="material-symbols-outlined text-4xl text-on-surface-variant/30 block mb-3">folder_open</span>
+      <p class="text-on-surface-variant font-semibold">Projects launching soon.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── Contact ────────────────────────────────────────────────────────────── -->
+<section id="contact" class="py-24 bg-surface relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/8 rounded-full blur-[140px] pointer-events-none"></div>
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="cn-contact-grid grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-start">
+      <div>
+        <span class="text-secondary font-bold tracking-widest uppercase text-xs mb-4 block">Get In Touch</span>
+        <h2 class="font-headline text-5xl font-extrabold mb-6 leading-tight">Ready to start your next chapter?</h2>
+        <p class="text-on-surface-variant text-lg mb-10 leading-relaxed">Open to new projects, student enrollments, and demo requests. Let's build something great.</p>
+        <div class="space-y-6">
+          <div class="flex items-center gap-5">
+            <div class="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-primary fill-icon">mail</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider mb-0.5">Email</p>
+              <p class="font-semibold">codenova@gmail.com</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-5">
+            <div class="w-12 h-12 bg-secondary/15 rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-secondary fill-icon">phone</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider mb-0.5">Phone / WhatsApp</p>
+              <p class="font-semibold">+91 7249207351</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-5">
+            <div class="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-primary fill-icon">location_on</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider mb-0.5">Location</p>
+              <p class="font-semibold">Remote Friendly — Worldwide</p>
+            </div>
+          </div>
+        </div>
+        <!-- Role CTAs -->
+        <div class="mt-10 p-6 glass-card rounded-2xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Join as...</p>
+          <div class="space-y-3">
+            <a href="{% url 'portal:register' %}" class="flex items-center gap-3 p-3 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors group">
+              <span class="material-symbols-outlined fill-icon text-primary">school</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">Student</p>
+                <p class="text-xs text-on-surface-variant">Access AI quizzes, notes, chatbot</p>
+              </div>
+              <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-sm">arrow_forward</span>
+            </a>
+            <a href="{% url 'portal:register' %}" class="flex items-center gap-3 p-3 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors group">
+              <span class="material-symbols-outlined fill-icon text-secondary">business_center</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">Client</p>
+                <p class="text-xs text-on-surface-variant">Track your development project</p>
+              </div>
+              <span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors text-sm">arrow_forward</span>
+            </a>
+            <a href="{% url 'portal:register' %}" class="flex items-center gap-3 p-3 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors group">
+              <span class="material-symbols-outlined fill-icon text-primary">videocam</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">Book a Demo</p>
+                <p class="text-xs text-on-surface-variant">See the platform in action</p>
+              </div>
+              <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-sm">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact form — fully functional Django form -->
+      <div class="glass-card p-10 rounded-2xl" id="contact-form-wrap">
+        <h3 class="font-headline text-xl font-bold mb-2">Send a Message</h3>
+
+        {% if contact_success %}
+        <div class="mb-5 p-4 rounded-xl flex items-start gap-3" style="background:rgba(0,200,100,0.1);border:1px solid rgba(0,200,100,0.2);">
+          <span class="material-symbols-outlined fill-icon" style="color:#00c864;font-size:1.25rem;flex-shrink:0;margin-top:1px">check_circle</span>
+          <div>
+            <p class="font-bold text-sm" style="color:#00c864">Message sent successfully!</p>
+            <p class="text-xs mt-0.5" style="color:#a9abb3">We'll get back to you within 24 hours.</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact_errors %}
+        <div class="mb-5 p-4 rounded-xl" style="background:rgba(255,110,132,0.1);border:1px solid rgba(255,110,132,0.2);">
+          {% for err in contact_errors %}
+          <p class="text-sm font-medium" style="color:#ff6e84">{{ err }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'portal:contact_submit' %}" class="space-y-5">
+          {% csrf_token %}
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-2">Name *</label>
+              <input type="text" name="name" placeholder="Your name" required value="{{ contact_name|default:'' }}"
+                class="w-full bg-surface-container-lowest rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all border-0"/>
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-2">Email *</label>
+              <input type="email" name="email" placeholder="you@example.com" required value="{{ contact_email|default:'' }}"
+                class="w-full bg-surface-container-lowest rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all border-0"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-2">Subject</label>
+            <select name="subject" class="w-full bg-black rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all border-0 appearance-none">
+              <option value="enrollment" {% if contact_subject == 'enrollment' %}selected{% endif %}>Student Enrollment</option>
+              <option value="project" {% if contact_subject == 'project' %}selected{% endif %}>Project Inquiry</option>
+              <option value="demo" {% if contact_subject == 'demo' %}selected{% endif %}>Book a Demo</option>
+              <option value="general" {% if contact_subject == 'general' %}selected{% endif %}>General Message</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-2">Message *</label>
+            <textarea name="message" rows="4" placeholder="How can I help you?" required
+              class="w-full bg-surface-container-lowest rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all border-0 resize-none">{{ contact_message|default:'' }}</textarea>
+          </div>
+          <button type="submit" class="w-full py-4 rounded-full gradient-bg font-bold text-black text-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined fill-icon text-base">send</span>
+            Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer class="bg-surface-container-low border-t border-outline-variant/10">
+  <!-- Main Footer Grid -->
+  <div class="max-w-7xl mx-auto px-6 py-16">
+    <div class="cn-footer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
+
+      <!-- Brand Column -->
+      <div class="md:col-span-1">
+        <div class="flex items-center gap-2.5 mb-5">
+          <span class="flex items-center gap-2">
+          <img src="/static/images/codenova_logo.png" alt="CodeNova"
+               class="h-11 w-auto object-contain flex-shrink-0"
+               style="max-width:150px;"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <span class="font-headline font-extrabold text-2xl tracking-tight hidden" style="background:linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CodeNova</span>
+        </span>
+        </div>
+        <p class="text-on-surface-variant text-sm leading-relaxed mb-6">
+          A developer &amp; coding coaching platform — empowering students, delivering client projects, and teaching real skills for the real world.
+        </p>
+        <!-- Social Links -->
+        <div class="flex items-center gap-3">
+          <a href="https://linkedin.com" target="_blank" rel="noopener"
+            class="w-9 h-9 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all"
+            aria-label="LinkedIn">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            </svg>
+          </a>
+          <a href="https://github.com" target="_blank" rel="noopener"
+            class="w-9 h-9 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all"
+            aria-label="GitHub">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="font-headline font-bold text-on-surface text-sm uppercase tracking-wider mb-5">Quick Links</h4>
+        <ul class="space-y-3">
+          <li><a href="#about"    class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>About</a></li>
+          <li><a href="#courses"  class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>Courses</a></li>
+          <li><a href="#projects" class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>Projects</a></li>
+          <li><a href="#contact"  class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>Contact</a></li>
+          <li><a href="{% url 'portal:login_choice' %}"    class="text-on-surface-variant hover:text-secondary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>Sign In</a></li>
+          <li><a href="{% url 'portal:register_choice' %}" class="text-on-surface-variant hover:text-secondary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">chevron_right</span>Register</a></li>
+        </ul>
+      </div>
+
+      <!-- Platform -->
+      <div>
+        <h4 class="font-headline font-bold text-on-surface text-sm uppercase tracking-wider mb-5">Platform</h4>
+        <ul class="space-y-3">
+          <li><a href="{% url 'portal:register' %}?role=student"  class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm fill-icon">school</span>Student Enrolment</a></li>
+          <li><a href="{% url 'portal:register' %}?role=client"   class="text-on-surface-variant hover:text-secondary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm fill-icon">business_center</span>Client Portal</a></li>
+          <li><a href="{% url 'portal:register' %}?role=inquiry"  class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm fill-icon">videocam</span>Book a Demo</a></li>
+          <li><a href="{% url 'portal:login_choice' %}"           class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-sm fill-icon">login</span>Login</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Info -->
+      <div>
+        <h4 class="font-headline font-bold text-on-surface text-sm uppercase tracking-wider mb-5">Contact Us</h4>
+        <ul class="space-y-4">
+          <li>
+            <a href="mailto:codenova@gmail.com"
+              class="flex items-start gap-3 group">
+              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                <span class="material-symbols-outlined text-primary fill-icon text-sm">mail</span>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mb-0.5">Email</p>
+                <p class="text-sm text-on-surface group-hover:text-primary transition-colors">codenova@gmail.com</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href="tel:+917249207351" class="flex items-start gap-3 group">
+              <div class="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/20 transition-colors">
+                <span class="material-symbols-outlined text-secondary fill-icon text-sm">phone</span>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mb-0.5">Phone</p>
+                <p class="text-sm text-on-surface group-hover:text-secondary transition-colors">+91 7249207351</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-on-surface-variant fill-icon text-sm">location_on</span>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold mb-0.5">Location</p>
+                <p class="text-sm text-on-surface">Remote — Worldwide</p>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Bottom Bar -->
+  <div class="border-t border-outline-variant/10">
+    <div class="cn-footer-bottom max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-on-surface-variant text-xs">
+        &copy; 2026 <span class="font-semibold text-on-surface">CodeNova</span>. All rights reserved.
+      </p>
+      <div class="flex items-center gap-4 text-xs text-on-surface-variant">
+        <span class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+          All systems operational
+        </span>
+        <span class="text-outline-variant">·</span>
+        <a href="#" class="hover:text-primary transition-colors">Privacy</a>
+        <a href="#" class="hover:text-primary transition-colors">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleHpNav() {
+  const nav = document.getElementById('hp-mobile-nav');
+  const iconMenu  = document.getElementById('hp-icon-menu');
+  const iconClose = document.getElementById('hp-icon-close');
+  const isOpen = nav.classList.toggle('open');
+  iconMenu.style.display  = isOpen ? 'none'  : 'block';
+  iconClose.style.display = isOpen ? 'block' : 'none';
+}
+// Close mobile nav on anchor link click
+document.querySelectorAll('#hp-mobile-nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('hp-mobile-nav').classList.remove('open');
+    document.getElementById('hp-icon-menu').style.display  = 'block';
+    document.getElementById('hp-icon-close').style.display = 'none';
+  });
+});
+</script>
+
+</body>
+</html>

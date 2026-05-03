@@ -1,0 +1,67 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Questions — {{ quiz.title }}{% endblock %}
+{% block breadcrumb %}Quizzes → {{ quiz.title }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'portal:su_quizzes' %}" class="text-sm text-on-surface-variant hover:text-primary flex items-center gap-1 mb-3"><span class="material-symbols-outlined text-base">arrow_back</span> Back to Quizzes</a>
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">{{ quiz.title }}</h2>
+  <p class="text-on-surface-variant text-sm">{{ questions.count }} question{{ questions.count|pluralize }} · {{ quiz.duration }} min</p>
+</div>
+<div class="grid lg:grid-cols-2 gap-6">
+  <!-- Add form -->
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Add Question</h3>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Question *</label>
+        <textarea name="text" rows="2" class="su-input resize-none" placeholder="Enter the question" required></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">A *</label><input type="text" name="option_a" class="su-input" required/></div>
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">B *</label><input type="text" name="option_b" class="su-input" required/></div>
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">C *</label><input type="text" name="option_c" class="su-input" required/></div>
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">D *</label><input type="text" name="option_d" class="su-input" required/></div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Correct Answer *</label>
+        <select name="correct" class="su-input" style="width:auto">
+          <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+      </div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Add Question</button>
+    </form>
+  </div>
+  <!-- Questions list -->
+  <div>
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Questions ({{ questions.count }})</h3>
+    {% if questions %}
+    <div class="space-y-3 max-h-[32rem] overflow-y-auto custom-scrollbar pr-1">
+      {% for q in questions %}
+      <div class="glass rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full gradient-bg flex items-center justify-center text-black text-[10px] font-black flex-shrink-0 mt-0.5">{{ q.order }}</span>
+            <p class="text-sm font-semibold text-on-surface">{{ q.text }}</p>
+          </div>
+          <form method="post" action="{% url 'portal:su_question_delete' q.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}
+            <button type="submit" class="text-error hover:text-red-300 transition-colors flex-shrink-0">
+              <span class="material-symbols-outlined text-base">delete</span>
+            </button>
+          </form>
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-xs text-on-surface-variant ml-7">
+          <span {% if q.correct == 'A' %}class="text-green-400 font-bold"{% endif %}>A. {{ q.option_a }}</span>
+          <span {% if q.correct == 'B' %}class="text-green-400 font-bold"{% endif %}>B. {{ q.option_b }}</span>
+          <span {% if q.correct == 'C' %}class="text-green-400 font-bold"{% endif %}>C. {{ q.option_c }}</span>
+          <span {% if q.correct == 'D' %}class="text-green-400 font-bold"{% endif %}>D. {{ q.option_d }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4">No questions yet. Add the first one →</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

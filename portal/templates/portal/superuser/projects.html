@@ -1,0 +1,73 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Projects{% endblock %}
+{% block breadcrumb %}Client Projects{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Client Projects</h2><p class="text-on-surface-variant text-sm">Create and manage client projects.</p></div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <!-- Create form -->
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">New Project</h3>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Client *</label>
+        <select name="client_id" class="su-input" required>
+          <option value="">— Select Client —</option>
+          {% for c in clients %}<option value="{{ c.pk }}">{{ c.username }} ({{ c.email }})</option>{% endfor %}
+        </select>
+      </div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Title *</label><input type="text" name="title" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Description</label><textarea name="description" rows="2" class="su-input resize-none"></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Status</label>
+          <select name="status" class="su-input">{% for val,label in status_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select>
+        </div>
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Progress %</label><input type="number" name="progress" value="0" min="0" max="100" class="su-input"/></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Team Size</label><input type="number" name="team_size" value="1" min="1" class="su-input"/></div>
+        <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Deadline</label><input type="date" name="deadline" class="su-input"/></div>
+      </div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Tech Stack</label><input type="text" name="tech_stack" placeholder="Django, React, AWS" class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Budget</label><input type="text" name="budget" placeholder="$5,000" class="su-input"/></div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Create Project</button>
+    </form>
+  </div>
+  <!-- Projects list -->
+  <div class="lg:col-span-2 space-y-4">
+    {% for p in projects %}
+    <div class="glass rounded-2xl p-5">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap mb-0.5">
+            <h3 class="font-headline font-bold text-on-surface">{{ p.title }}</h3>
+            <span class="badge {% if p.status == 'completed' %}badge-approved{% elif p.status == 'in_progress' %}badge-student{% elif p.status == 'on_hold' %}badge-error{% else %}badge-pending{% endif %}">{{ p.get_status_display }}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant">{{ p.client.username }} · Team: {{ p.team_size }}{% if p.deadline %} · Due {{ p.deadline|date:"M d" }}{% endif %}</p>
+        </div>
+        <form method="post" action="{% url 'portal:su_project_delete' p.pk %}" onsubmit="return confirm('Delete project?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+      </div>
+      <div class="bg-surface-container rounded-xl h-2 mb-3"><div class="h-2 rounded-xl" style="background:linear-gradient(90deg,#b6a0ff,#00affe);width:{{ p.progress }}%"></div></div>
+      <details>
+        <summary class="text-xs text-on-surface-variant cursor-pointer hover:text-primary">Update status/progress</summary>
+        <form method="post" action="{% url 'portal:su_project_update' p.pk %}" class="mt-3 space-y-2">
+          {% csrf_token %}
+          <div class="flex flex-wrap gap-3 items-end">
+            <div><label class="block text-xs font-bold text-on-surface-variant mb-1">Status</label>
+              <select name="status" class="su-input w-full">{% for val,label in status_choices %}<option value="{{ val }}" {% if p.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            </div>
+            <div><label class="block text-xs font-bold text-white-variant mb-1">Progress %</label><input type="number" name="progress" value="{{ p.progress }}" min="0" max="100" class="su-input w-full sm:w-24"/></div>
+            <div class="flex-1"><label class="block text-xs font-bold text-white-variant mb-1">Notes</label><input type="text" name="notes" value="{{ p.notes }}" class="su-input" placeholder="Update notes"/></div>
+          </div>
+          <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1"><label class="block text-xs font-bold text-white-variant mb-1">🌐 Live URL</label><input type="url" name="live_url" value="{{ p.live_url }}" class="su-input" placeholder="https://..."/></div>
+            <div class="flex-1"><label class="block text-xs font-bold text-white-variant mb-1">🎥 Demo Video URL</label><input type="url" name="demo_video_url" value="{{ p.demo_video_url }}" class="su-input" placeholder="YouTube or hosted video URL"/></div>
+            <button type="submit" class="su-btn su-btn-primary" style="padding:6px 14px">Update</button>
+          </div>
+        </form>
+      </details>
+    </div>
+    {% empty %}<div class="glass rounded-2xl p-8 text-center text-on-surface-variant">No projects yet.</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

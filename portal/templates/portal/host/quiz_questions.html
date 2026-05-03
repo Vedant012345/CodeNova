@@ -1,0 +1,72 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Quiz Questions{% endblock %}
+{% block breadcrumb %}Quizzes → {{ quiz.title }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <a href="{% url 'portal:host_quizzes' %}" class="text-xs text-primary hover:underline flex items-center gap-1 mb-1">
+      <span class="material-symbols-outlined text-xs">arrow_back</span> Back to Quizzes
+    </a>
+    <h2 class="font-headline text-xl font-extrabold text-on-surface">{{ quiz.title }}</h2>
+    <p class="text-xs text-on-surface-variant mt-0.5">{{ questions.count }} question(s) · {% if quiz.is_ai_generated %}<span class="badge badge-info">AI Generated</span>{% endif %}</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <!-- Add question form -->
+  <div class="form-card">
+    <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> Add Question</div>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add"/>
+      <textarea name="text" required rows="2" placeholder="Question text *" class="h-input resize-none"></textarea>
+      <div class="grid grid-cols-2 gap-2">
+        <input type="text" name="option_a" required placeholder="Option A *" class="h-input"/>
+        <input type="text" name="option_b" required placeholder="Option B *" class="h-input"/>
+        <input type="text" name="option_c" placeholder="Option C" class="h-input"/>
+        <input type="text" name="option_d" placeholder="Option D" class="h-input"/>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1">
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Correct Answer *</label>
+          <select name="correct" class="h-input">
+            <option value="A">A</option><option value="B">B</option>
+            <option value="C">C</option><option value="D">D</option>
+          </select>
+        </div>
+      </div>
+      <textarea name="explanation" rows="2" placeholder="Explanation (optional)" class="h-input resize-none"></textarea>
+      <button type="submit" class="w-full h-btn h-btn-primary justify-center">
+        <span class="material-symbols-outlined text-base">add</span> Add Question
+      </button>
+    </form>
+  </div>
+
+  <!-- Questions list -->
+  <div>
+    <h3 class="font-headline font-bold text-on-surface mb-4">Questions ({{ questions.count }})</h3>
+    <div class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-1">
+      {% for q in questions %}
+      <div class="glass-card rounded-xl p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <p class="text-sm font-bold text-on-surface flex-1">Q{{ q.order }}. {{ q.text }}</p>
+          <form method="post" action="{% url 'portal:host_question_delete' q.pk %}" onsubmit="return confirm('Delete?')">
+            {% csrf_token %}
+            <button class="h-btn h-btn-danger text-xs flex-shrink-0" style="padding:2px 8px">✕</button>
+          </form>
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-xs mt-2">
+          <span class="{% if q.correct == 'A' %}text-green-400 font-bold{% else %}text-on-surface-variant{% endif %}">A. {{ q.option_a }}</span>
+          <span class="{% if q.correct == 'B' %}text-green-400 font-bold{% else %}text-on-surface-variant{% endif %}">B. {{ q.option_b }}</span>
+          {% if q.option_c %}<span class="{% if q.correct == 'C' %}text-green-400 font-bold{% else %}text-on-surface-variant{% endif %}">C. {{ q.option_c }}</span>{% endif %}
+          {% if q.option_d %}<span class="{% if q.correct == 'D' %}text-green-400 font-bold{% else %}text-on-surface-variant{% endif %}">D. {{ q.option_d }}</span>{% endif %}
+        </div>
+        {% if q.explanation %}<p class="text-xs text-on-surface-variant mt-2 italic">💡 {{ q.explanation }}</p>{% endif %}
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant text-sm">No questions yet. Add some!</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

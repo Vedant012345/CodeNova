@@ -1,0 +1,233 @@
+{% extends "portal/base.html" %}
+{% block title %}Demo Dashboard{% endblock %}
+{% block breadcrumb %}Demo Dashboard{% endblock %}
+{% block content %}
+
+<div class="mb-8">
+  <h2 class="font-headline text-3xl font-extrabold text-on-surface mb-1">
+    Welcome, {{ user.get_full_name }} 👋
+  </h2>
+  <p class="text-on-surface-variant text-sm">Your demo sessions, recorded lectures, and meeting schedule — all in one place.</p>
+</div>
+
+<!-- ── Upcoming Meeting Hero ─────────────────────────────────────────────── -->
+{% if upcoming_demo %}
+<div class="rounded-2xl bg-gradient-to-br from-primary-dim/40 to-secondary-dim/30 border border-primary/20 p-7 mb-6">
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div class="flex-1 min-w-0">
+      <span class="text-xs font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse inline-block"></span>
+        Next Scheduled Session
+      </span>
+      <h3 class="font-headline text-xl font-bold text-on-surface mb-1">{{ upcoming_demo.title }}</h3>
+      <p class="text-on-surface-variant text-sm mb-4">{{ upcoming_demo.description|default:"Live demo of the CodeNova platform. Join using the link below." }}</p>
+      <div class="flex flex-wrap gap-4 text-sm text-on-surface-variant">
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary text-base fill-icon">calendar_month</span>
+          {{ upcoming_demo.scheduled_at|date:"l, F d, Y" }}
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-secondary text-base fill-icon">schedule</span>
+          {{ upcoming_demo.scheduled_at|date:"H:i" }} (local time)
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-tertiary text-base fill-icon">videocam</span>
+          {{ upcoming_demo.get_platform_display }}
+        </span>
+        {% if upcoming_demo.meeting_id %}
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">tag</span>
+          ID: {{ upcoming_demo.meeting_id }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% if upcoming_demo.meeting_link %}
+    <a href="{{ upcoming_demo.meeting_link }}" target="_blank" rel="noopener"
+      class="flex-shrink-0 gradient-bg px-6 py-3 rounded-full font-bold text-black text-sm hover:opacity-90 transition-all flex items-center gap-2 self-start">
+      <span class="material-symbols-outlined text-base fill-icon">videocam</span> Join Session
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Main Grid: Video Lectures + Schedule ──────────────────────────────── -->
+<div class="grid lg:grid-cols-5 gap-6 mb-6">
+
+  <!-- Recorded Lectures (3/5) -->
+  <div class="lg:col-span-3 space-y-4">
+    <h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary fill-icon">play_circle</span>
+      Recorded Lectures
+    </h3>
+
+    {% if video_demos %}
+      {% for vd in video_demos %}
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <!-- Responsive embed container 16:9 -->
+        <div class="relative w-full bg-black" style="padding-top:56.25%;">
+          <iframe
+            class="absolute inset-0 w-full h-full"
+            data-raw-src="{{ vd.video_url }}"
+            title="{{ vd.title }}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="p-4">
+          <h4 class="font-semibold text-on-surface text-sm mb-1">{{ vd.title }}</h4>
+          {% if vd.description %}
+          <p class="text-xs text-on-surface-variant mb-2">{{ vd.description|truncatechars:100 }}</p>
+          {% endif %}
+          <div class="flex items-center justify-between text-xs text-on-surface-variant">
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm fill-icon text-secondary">calendar_today</span>
+              {{ vd.scheduled_at|date:"M d, Y" }}
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-900/40 text-green-400">
+              {{ vd.get_status_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="glass-card rounded-2xl p-10 text-center">
+        <span class="material-symbols-outlined text-4xl text-on-surface-variant/30 block mb-3">play_disabled</span>
+        <p class="text-on-surface-variant font-semibold text-sm">No recorded lectures yet.</p>
+        <p class="text-xs text-on-surface-variant/60 mt-1">Your instructor will add video lectures here after your sessions.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Meeting Schedule (2/5) -->
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-secondary fill-icon">event</span>
+      Meeting Schedule
+    </h3>
+    {% if demos %}
+    <div class="space-y-3">
+      {% for d in demos %}
+      <div class="glass-card rounded-xl p-4 border-l-2
+        {% if d.status == 'scheduled' %}border-primary
+        {% elif d.status == 'completed' %}border-green-500
+        {% elif d.status == 'cancelled' %}border-red-500
+        {% else %}border-outline-variant{% endif %}">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-on-surface text-xs truncate">{{ d.title }}</h4>
+            <p class="text-xs text-on-surface-variant mt-0.5">{{ d.scheduled_at|date:"M d, Y · H:i" }}</p>
+          </div>
+          <span class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-bold
+            {% if d.status == 'scheduled' %}bg-primary/15 text-primary
+            {% elif d.status == 'completed' %}bg-green-900/40 text-green-400
+            {% elif d.status == 'cancelled' %}bg-red-900/40 text-error
+            {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+            {{ d.get_status_display }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-on-surface-variant">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm fill-icon">videocam</span>
+            {{ d.get_platform_display }}
+          </span>
+          {% if d.meeting_link and d.status == 'scheduled' %}
+          <a href="{{ d.meeting_link }}" target="_blank" rel="noopener"
+            class="text-xs font-bold text-secondary hover:underline flex items-center gap-0.5">
+            Join <span class="material-symbols-outlined text-sm">open_in_new</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card rounded-xl p-8 text-center">
+      <span class="material-symbols-outlined text-3xl text-on-surface-variant/30 block mb-2">event_busy</span>
+      <p class="text-on-surface-variant text-xs font-semibold">No sessions scheduled yet.</p>
+      <p class="text-[11px] text-on-surface-variant/60 mt-1">Our team will schedule your demo soon.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Contact Support ───────────────────────────────────────────────────── -->
+<div class="glass-card rounded-2xl p-6">
+  <h3 class="font-headline font-bold text-on-surface mb-1 flex items-center gap-2">
+    <span class="material-symbols-outlined text-tertiary fill-icon">support_agent</span>
+    Contact Support
+  </h3>
+  <p class="text-on-surface-variant text-xs mb-4">Questions? Our team is here to help before and after your session.</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="flex items-center gap-4 p-4 bg-surface-container rounded-xl">
+      <div class="w-10 h-10 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-primary fill-icon">mail</span>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider">Email</p>
+        <a href="mailto:{{ support_email }}" class="text-sm font-semibold text-on-surface hover:text-primary transition-colors">{{ support_email }}</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 p-4 bg-surface-container rounded-xl">
+      <div class="w-10 h-10 bg-secondary/15 rounded-full flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-secondary fill-icon">phone</span>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider">Phone</p>
+        <a href="tel:{{ support_phone }}" class="text-sm font-semibold text-on-surface hover:text-secondary transition-colors">{{ support_phone }}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Tools + Ask Question Quick Access -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <a href="{% url 'portal:chatbot' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-secondary/30 transition-all group">
+    <div class="w-12 h-12 bg-secondary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/25 transition-colors">
+      <span class="material-symbols-outlined text-secondary fill-icon text-2xl">smart_toy</span>
+    </div>
+    <div>
+      <p class="font-headline font-bold text-on-surface">AI Chatbot</p>
+      <p class="text-xs text-on-surface-variant">Get instant answers from your AI assistant</p>
+    </div>
+    <span class="ml-auto text-[9px] gradient-bg text-black font-bold px-2 py-1 rounded-full">AI</span>
+  </a>
+  <a href="{% url 'portal:ask_question' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
+    <div class="w-12 h-12 bg-primary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/25 transition-colors">
+      <span class="material-symbols-outlined text-primary fill-icon text-2xl">help</span>
+    </div>
+    <div>
+      <p class="font-headline font-bold text-on-surface">Ask a Question</p>
+      <p class="text-xs text-on-surface-variant">Submit questions for host/teacher review</p>
+    </div>
+    <span class="material-symbols-outlined text-on-surface-variant/40 ml-auto">arrow_forward</span>
+  </a>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// Convert raw YouTube / hosted video URLs to embeds at runtime
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('iframe[data-raw-src]').forEach(function (iframe) {
+    var raw = iframe.getAttribute('data-raw-src') || '';
+    var embedSrc = raw;
+    // Standard YouTube watch URL
+    var ytMatch = raw.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      embedSrc = 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0&modestbranding=1';
+    }
+    // Short youtu.be URL
+    var shortMatch = raw.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+    if (shortMatch) {
+      embedSrc = 'https://www.youtube.com/embed/' + shortMatch[1] + '?rel=0&modestbranding=1';
+    }
+    // Already an embed URL — leave as-is
+    iframe.setAttribute('src', embedSrc);
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Demo Sessions{% endblock %}
+{% block breadcrumb %}Demo Sessions{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Demo Sessions</h2></div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">Schedule Demo</h3>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Inquiry User *</label>
+        <select name="user_id" class="su-input" required><option value="">— Select User —</option>{% for u in inquirers %}<option value="{{ u.pk }}">{{ u.username }} ({{ u.email }})</option>{% endfor %}</select>
+      </div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Session Title</label><input type="text" name="title" value="Demo Session" class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Date & Time *</label><input type="datetime-local" name="scheduled_at" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Platform</label>
+        <select name="platform" class="su-input">{% for val,label in platform_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select>
+      </div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Meeting Link</label><input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Meeting ID</label><input type="text" name="meeting_id" placeholder="123 456 7890" class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-1.5">Description</label><textarea name="description" rows="2" class="su-input resize-none"></textarea></div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Schedule Demo</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2 space-y-4">
+    {% for d in demos %}
+    <div class="glass rounded-2xl p-5">
+      <div class="flex items-start justify-between gap-3 mb-2">
+        <div>
+          <div class="flex items-center gap-2 mb-0.5">
+            <h3 class="font-headline font-bold text-on-surface">{{ d.title }}</h3>
+            <span class="badge {% if d.status == 'scheduled' %}badge-student{% elif d.status == 'completed' %}badge-approved{% elif d.status == 'cancelled' %}badge-error{% else %}badge-pending{% endif %}">{{ d.get_status_display }}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant">{{ d.inquiry_user.username }} · {{ d.scheduled_at|date:"M d, Y H:i" }} · {{ d.get_platform_display }}</p>
+          {% if d.meeting_link %}<a href="{{ d.meeting_link }}" target="_blank" class="text-xs text-secondary hover:underline">Join meeting →</a>{% endif %}
+        </div>
+        <form method="post" action="{% url 'portal:su_demo_delete' d.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+      </div>
+      <form method="post" action="{% url 'portal:su_demo_update_status' d.pk %}" class="mt-2 space-y-2">
+        {% csrf_token %}
+        <div class="flex items-center gap-3 flex-wrap">
+          <select name="status" class="su-input w-full">{% for val,label in status_choices %}<option value="{{ val }}" {% if d.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <input type="url" name="video_url" value="{{ d.video_url }}" placeholder="Video URL (YouTube or hosted)" class="su-input" style="flex:1;min-width:200px;"/>
+          <button type="submit" class="su-btn su-btn-ghost" style="padding:6px 14px">Update</button>
+        </div>
+        {% if d.video_url %}<p class="text-xs text-secondary">🎥 <a href="{{ d.video_url }}" target="_blank" class="hover:underline">View current video →</a></p>{% endif %}
+      </form>
+    </div>
+    {% empty %}<div class="glass rounded-2xl p-8 text-center text-on-surface-variant">No demo sessions yet.</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

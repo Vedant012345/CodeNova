@@ -1,0 +1,197 @@
+{% extends "portal/base.html" %}
+{% block title %}Client Dashboard{% endblock %}
+{% block breadcrumb %}Client Dashboard{% endblock %}
+{% block content %}
+
+<div class="mb-8">
+  <h2 class="font-headline text-3xl font-extrabold text-on-surface mb-1">Your Projects, {{ user.get_full_name }}</h2>
+  <p class="text-on-surface-variant text-sm">Track progress, preview live builds, and watch demo recordings.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-3 gap-4 mb-8">
+  <div class="glass-card p-5 rounded-2xl">
+    <div class="w-9 h-9 bg-secondary/15 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-secondary fill-icon">folder_open</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-on-surface mb-0.5">{{ total_projects }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Projects</p>
+  </div>
+  <div class="glass-card p-5 rounded-2xl">
+    <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-primary fill-icon">pending</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-on-surface mb-0.5">{{ active_projects }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">In Progress</p>
+  </div>
+  <div class="glass-card p-5 rounded-2xl">
+    <div class="w-9 h-9 bg-green-900/40 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-green-400 fill-icon">task_alt</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-on-surface mb-0.5">{{ completed_projects }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Completed</p>
+  </div>
+</div>
+
+<!-- Project Cards -->
+{% if projects %}
+<div class="space-y-6">
+  {% for p in projects %}
+  <div class="glass-card rounded-2xl p-6">
+    <!-- Header Row -->
+    <div class="flex items-start justify-between gap-4 mb-4">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          <h3 class="font-headline font-bold text-on-surface text-base">{{ p.title }}</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full font-bold
+            {% if p.status == 'completed' %}bg-green-900/40 text-green-400
+            {% elif p.status == 'in_progress' %}bg-primary/15 text-primary
+            {% elif p.status == 'on_hold' %}bg-red-900/40 text-error
+            {% elif p.status == 'review' %}bg-secondary/15 text-secondary
+            {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+            {{ p.get_status_display }}
+          </span>
+          {% if p.is_overdue %}<span class="text-xs px-2 py-0.5 rounded-full bg-red-900/40 text-error font-bold">⚠ Overdue</span>{% endif %}
+        </div>
+        {% if p.description %}<p class="text-sm text-on-surface-variant">{{ p.description|truncatechars:140 }}</p>{% endif %}
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="text-2xl font-extrabold font-headline gradient-text">{{ p.progress }}%</p>
+        <p class="text-xs text-on-surface-variant">complete</p>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-track h-2.5 mb-4">
+      <div class="progress-fill h-2.5" style="width:{{ p.progress }}%"></div>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="flex flex-wrap items-center gap-5 text-xs text-on-surface-variant mb-4">
+      <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">group</span> {{ p.team_size }} member{{ p.team_size|pluralize }}</span>
+      {% if p.deadline %}<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">calendar_today</span> Due {{ p.deadline|date:"M d, Y" }}</span>{% endif %}
+      {% if p.start_date %}<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">play_circle</span> Started {{ p.start_date|date:"M d, Y" }}</span>{% endif %}
+      {% if p.tech_stack %}<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">code</span> {{ p.tech_stack }}</span>{% endif %}
+    </div>
+
+    <!-- Project Preview Actions (Live URL + Demo Video) -->
+    {% if p.live_url or p.demo_video_url %}
+    <div class="border-t border-outline-variant/10 pt-4">
+      <p class="text-xs font-bold uppercase text-on-surface-variant tracking-wider mb-3 flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm fill-icon text-secondary">preview</span>
+        Project Preview
+      </p>
+      <div class="flex flex-wrap gap-3 mb-4">
+        {% if p.live_url %}
+        <a href="{{ p.live_url }}" target="_blank" rel="noopener"
+          class="flex items-center gap-2 px-4 py-2 gradient-bg rounded-full text-black text-xs font-bold hover:opacity-90 transition-all">
+          <span class="material-symbols-outlined text-sm fill-icon">launch</span>
+          Live Preview
+        </a>
+        {% endif %}
+        {% if p.demo_video_url %}
+        <button
+          onclick="toggleDemoVideo(this, '{{ p.demo_video_url }}')"
+          class="flex items-center gap-2 px-4 py-2 bg-secondary/15 text-secondary border border-secondary/20 rounded-full text-xs font-bold hover:bg-secondary/25 transition-all">
+          <span class="material-symbols-outlined text-sm fill-icon">smart_display</span>
+          Watch Demo
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Collapsible Video Player -->
+      {% if p.demo_video_url %}
+      <div class="demo-video-container hidden rounded-xl overflow-hidden" style="padding-top:0;">
+        <div class="relative w-full bg-black rounded-xl overflow-hidden" style="padding-top:56.25%;">
+          <iframe
+            class="absolute inset-0 w-full h-full demo-iframe"
+            data-raw-src="{{ p.demo_video_url }}"
+            src=""
+            title="Demo: {{ p.title }}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if p.notes %}
+    <div class="mt-3 p-3 bg-surface-container rounded-xl text-xs text-on-surface-variant">
+      <span class="font-semibold">Note: </span>{{ p.notes }}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 block mb-3">folder_open</span>
+  <p class="text-on-surface-variant font-semibold">No projects assigned yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Your project manager will add your projects here shortly.</p>
+</div>
+{% endif %}
+
+<!-- AI Tools + Ask Question Quick Access -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <a href="{% url 'portal:chatbot' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-secondary/30 transition-all group">
+    <div class="w-12 h-12 bg-secondary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/25 transition-colors">
+      <span class="material-symbols-outlined text-secondary fill-icon text-2xl">smart_toy</span>
+    </div>
+    <div>
+      <p class="font-headline font-bold text-on-surface">AI Chatbot</p>
+      <p class="text-xs text-on-surface-variant">Get instant answers from your AI assistant</p>
+    </div>
+    <span class="ml-auto text-[9px] gradient-bg text-black font-bold px-2 py-1 rounded-full">AI</span>
+  </a>
+  <a href="{% url 'portal:ask_question' %}" class="glass-card rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
+    <div class="w-12 h-12 bg-primary/15 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/25 transition-colors">
+      <span class="material-symbols-outlined text-primary fill-icon text-2xl">help</span>
+    </div>
+    <div>
+      <p class="font-headline font-bold text-on-surface">Ask a Question</p>
+      <p class="text-xs text-on-surface-variant">Submit questions for host/teacher review</p>
+    </div>
+    <span class="material-symbols-outlined text-on-surface-variant/40 ml-auto">arrow_forward</span>
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Convert raw video URL to embed when "Watch Demo" is clicked
+function toEmbedUrl(raw) {
+  var ytMatch = raw.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0&modestbranding=1&autoplay=1';
+  var shortMatch = raw.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if (shortMatch) return 'https://www.youtube.com/embed/' + shortMatch[1] + '?rel=0&modestbranding=1&autoplay=1';
+  return raw; // hosted video — use directly
+}
+
+function toggleDemoVideo(btn, rawSrc) {
+  var card = btn.closest('.glass-card');
+  var container = card.querySelector('.demo-video-container');
+  if (!container) return;
+  var isHidden = container.classList.contains('hidden');
+  if (isHidden) {
+    // Inject embed src
+    var iframe = container.querySelector('.demo-iframe');
+    if (iframe && !iframe.getAttribute('src')) {
+      iframe.setAttribute('src', toEmbedUrl(rawSrc));
+    }
+    container.classList.remove('hidden');
+    container.style.paddingTop = '0';
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm fill-icon">close</span> Hide Video';
+  } else {
+    container.classList.add('hidden');
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm fill-icon">smart_display</span> Watch Demo';
+    // Pause by clearing src
+    var iframe = container.querySelector('.demo-iframe');
+    if (iframe) iframe.setAttribute('src', '');
+  }
+}
+</script>
+{% endblock %}

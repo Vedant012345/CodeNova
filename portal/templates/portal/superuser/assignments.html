@@ -1,0 +1,58 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Assignments{% endblock %}
+{% block breadcrumb %}Assignments{% endblock %}
+{% block content %}
+<div class="mb-6"><h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Manage Assignments</h2></div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="glass rounded-2xl p-6">
+    <h3 class="font-headline font-bold mb-4 text-on-surface">New Assignment</h3>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Title *</label><input type="text" name="title" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Subject</label><input type="text" name="subject" class="su-input"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Description</label><textarea name="description" rows="3" class="su-input resize-none"></textarea></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Due Date/Time *</label><input type="datetime-local" name="due_date" class="su-input" required/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Max Marks</label><input type="number" name="max_marks" value="100" min="1" class="su-input w-full sm:w-32"/></div>
+      <div><label class="block text-xs font-bold uppercase tracking-wider text-white-variant mb-2">Attachment</label><input type="file" name="file" class="su-input"/></div>
+      <button type="submit" class="su-btn su-btn-primary w-full">Create Assignment</button>
+    </form>
+  </div>
+  <div class="lg:col-span-2 space-y-4">
+    {% for a in assignments %}
+    <div class="glass rounded-2xl p-5">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 class="font-headline font-bold text-on-surface">{{ a.title }}{% if a.subject %} <span class="badge badge-student text-[10px] ml-1">{{ a.subject }}</span>{% endif %}</h3>
+          <p class="text-xs text-on-surface-variant mt-0.5">Due: {{ a.due_date|date:"M d, Y H:i" }} · {{ a.max_marks }} marks · {{ a.submissions.count }} submission{{ a.submissions.count|pluralize }}</p>
+        </div>
+        <form method="post" action="{% url 'portal:su_assignment_delete' a.pk %}" onsubmit="return confirm('Delete?')">{% csrf_token %}<button type="submit" class="su-btn su-btn-danger" style="padding:4px 10px;font-size:11px;">Delete</button></form>
+      </div>
+      {% if a.submissions.all %}
+      <details class="text-xs">
+        <summary class="text-on-surface-variant cursor-pointer hover:text-primary">View {{ a.submissions.count }} submission{{ a.submissions.count|pluralize }}</summary>
+        <div class="mt-2 space-y-2">
+          {% for s in a.submissions.all %}
+          <div class="bg-surface-container rounded-xl p-3 flex items-center justify-between gap-3">
+            <div><p class="font-semibold text-on-surface text-xs">{{ s.student.username }}</p><p class="text-on-surface-variant text-[11px]">{{ s.submitted_at|date:"M d, Y" }} · {{ s.get_status_display }}</p></div>
+            {% if s.status != 'graded' %}
+            <form method="post" action="{% url 'portal:su_grade_submission' s.pk %}" class="flex items-center gap-2">
+              {% csrf_token %}
+              <input type="number" name="marks" placeholder="Marks" min="0" max="{{ a.max_marks }}" class="su-input" style="width:80px;padding:4px 8px;font-size:11px;"/>
+              <input type="text" name="feedback" placeholder="Feedback" class="su-input" style="width:140px;padding:4px 8px;font-size:11px;"/>
+              <button type="submit" class="su-btn su-btn-primary" style="padding:4px 10px;font-size:11px;">Grade</button>
+            </form>
+            {% else %}
+            <span class="badge badge-approved">{{ s.marks }}/{{ a.max_marks }}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="glass rounded-2xl p-8 text-center text-on-surface-variant">No assignments yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

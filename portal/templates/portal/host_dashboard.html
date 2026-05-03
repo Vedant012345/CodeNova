@@ -1,0 +1,227 @@
+{% extends "portal/superuser/base.html" %}
+{% block title %}Host / Teacher Dashboard{% endblock %}
+{% block breadcrumb %}Host Dashboard — AI Tools{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">Host / Teacher Dashboard</h2>
+  <p class="text-on-surface-variant text-sm">AI tools, student queries, and chat monitoring.</p>
+</div>
+
+<!-- AI Tools KPI Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="glass rounded-2xl p-5">
+    <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-primary fill-icon">auto_awesome</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline">{{ ai_quiz_count }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">AI Quizzes Generated</p>
+  </div>
+  <div class="glass rounded-2xl p-5">
+    <div class="w-9 h-9 bg-secondary/15 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-secondary fill-icon">smart_toy</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline">{{ chat_count }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">AI Chat Messages</p>
+  </div>
+  <div class="glass rounded-2xl p-5">
+    <div class="w-9 h-9 bg-yellow-700/30 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-yellow-400 fill-icon">help</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-yellow-400">{{ open_queries.count }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Open Questions</p>
+  </div>
+  <div class="glass rounded-2xl p-5">
+    <div class="w-9 h-9 bg-green-900/40 rounded-xl flex items-center justify-center mb-3">
+      <span class="material-symbols-outlined text-green-400 fill-icon">mark_chat_read</span>
+    </div>
+    <p class="text-2xl font-extrabold font-headline text-green-400">{{ answered_queries.count }}</p>
+    <p class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Answered Queries</p>
+  </div>
+</div>
+
+<!-- AI Tools Section -->
+<div class="mb-8">
+  <h3 class="font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined fill-icon text-primary">auto_awesome</span>
+    AI Tools
+  </h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- AI Quiz Generator Card -->
+    <div class="glass rounded-2xl p-6 border border-primary/20">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-primary/15 rounded-2xl flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-primary fill-icon text-2xl">quiz</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-headline font-bold text-on-surface mb-1">AI Quiz Generator</h4>
+          <p class="text-xs text-on-surface-variant mb-4 leading-relaxed">
+            Generate multiple-choice quizzes on any topic using Groq LLM. Questions are automatically saved and available for students to attempt.
+          </p>
+          <div class="flex items-center gap-3">
+            <a href="{% url 'portal:ai_quiz_generate' %}" class="su-btn su-btn-primary text-sm flex items-center gap-2">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              Generate New Quiz
+            </a>
+            <span class="text-xs text-on-surface-variant">{{ ai_quiz_count }} quizzes created</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- AI Chatbot Monitor Card -->
+    <div class="glass rounded-2xl p-6 border border-secondary/20">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-secondary/15 rounded-2xl flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-secondary fill-icon text-2xl">smart_toy</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-headline font-bold text-on-surface mb-1">AI Chatbot Monitor</h4>
+          <p class="text-xs text-on-surface-variant mb-4 leading-relaxed">
+            Review recent student chatbot interactions. Students use ScholarBot to get help with coursework and coding questions.
+          </p>
+          <div class="flex items-center gap-3">
+            <span class="text-xs bg-secondary/15 text-secondary px-3 py-1.5 rounded-full font-semibold">
+              {{ chat_count }} total messages
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main grid: Open Questions + AI Quizzes -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+  <!-- Open Student Questions -->
+  <div class="glass rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined fill-icon text-yellow-400 text-base">pending</span>
+        Open Student Questions
+      </h3>
+      <span class="badge badge-warning">{{ open_queries.count }} open</span>
+    </div>
+
+    {% if open_queries %}
+    <div class="space-y-4">
+      {% for q in open_queries %}
+      <div class="bg-surface-container rounded-xl p-4">
+        <!-- Question info -->
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
+            <p class="text-sm font-bold text-on-surface">{{ q.subject|truncatechars:60 }}</p>
+            <p class="text-xs text-on-surface-variant">
+              By <span class="text-primary font-semibold">{{ q.user.username }}</span>
+              ({{ q.user.get_role_display }}) · {{ q.created_at|date:"M d, H:i" }}
+            </p>
+          </div>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-3 leading-relaxed bg-surface-container-high rounded-lg px-3 py-2">
+          {{ q.question|truncatechars:180 }}
+        </p>
+        <!-- Reply form -->
+        <form method="post" action="{% url 'portal:host_answer_query' q.pk %}" class="flex gap-2">
+          {% csrf_token %}
+          <input type="text" name="answer" required placeholder="Type your reply…"
+            class="su-input flex-1 text-xs py-2"/>
+          <button type="submit" class="su-btn su-btn-primary text-xs flex-shrink-0 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">send</span>
+            Reply
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+      <span class="material-symbols-outlined fill-icon text-on-surface-variant/30 text-4xl block mb-2">check_circle</span>
+      <p class="text-sm text-on-surface-variant">All questions answered! 🎉</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent AI Quizzes -->
+  <div class="glass rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined fill-icon text-primary text-base">auto_awesome</span>
+        Recent AI Quizzes
+      </h3>
+      <a href="{% url 'portal:su_quizzes' %}" class="text-xs text-primary font-semibold hover:underline">Manage all →</a>
+    </div>
+    {% if ai_quizzes %}
+    <div class="space-y-2">
+      {% for quiz in ai_quizzes %}
+      <div class="flex items-center gap-3 p-3 bg-surface-container rounded-xl table-row">
+        <div class="w-8 h-8 bg-primary/15 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-primary fill-icon text-sm">auto_awesome</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-on-surface truncate">{{ quiz.title }}</p>
+          <p class="text-xs text-on-surface-variant">{{ quiz.questions.count }} questions · {{ quiz.created_at|date:"M d" }}</p>
+        </div>
+        <a href="{% url 'portal:su_quiz_questions' quiz.pk %}" class="text-xs text-secondary font-semibold hover:underline flex-shrink-0">View</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-on-surface-variant py-4">No AI quizzes generated yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent Chat Logs -->
+<div class="glass rounded-2xl p-6">
+  <h3 class="font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined fill-icon text-secondary text-base">chat</span>
+    Recent AI Chatbot Logs
+    <span class="ml-auto text-xs text-on-surface-variant font-normal">Latest 20 messages</span>
+  </h3>
+  {% if chat_logs %}
+  <div class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
+    {% for msg in chat_logs %}
+    <div class="flex items-start gap-3 p-2.5 bg-surface-container rounded-xl">
+      <span class="text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 mt-0.5
+        {% if msg.role == 'user' %}bg-primary/15 text-primary{% else %}bg-secondary/15 text-secondary{% endif %}">
+        {{ msg.role|upper }}
+      </span>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-on-surface-variant mb-0.5">
+          {{ msg.student.username }}{% if msg.topic %} · <em>{{ msg.topic }}</em>{% endif %}
+        </p>
+        <p class="text-xs text-on-surface leading-relaxed truncate">{{ msg.content|truncatechars:120 }}</p>
+      </div>
+      <span class="text-[10px] text-on-surface-variant flex-shrink-0">{{ msg.timestamp|date:"H:i" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-sm text-on-surface-variant">No chatbot messages yet.</p>
+  {% endif %}
+</div>
+
+<!-- Answered queries history -->
+{% if answered_queries %}
+<div class="mt-6 glass rounded-2xl p-6">
+  <h3 class="font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined fill-icon text-green-400 text-base">mark_chat_read</span>
+    Recently Answered Questions
+  </h3>
+  <div class="space-y-3">
+    {% for q in answered_queries %}
+    <div class="bg-surface-container rounded-xl p-3">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-sm font-bold text-on-surface">{{ q.subject|truncatechars:70 }}</p>
+        <span class="badge badge-success text-[10px]">ANSWERED</span>
+      </div>
+      <p class="text-xs text-on-surface-variant">
+        Asked by <span class="text-primary">{{ q.user.username }}</span>
+        → Replied by <span class="text-green-400">{{ q.answered_by.username|default:"Host" }}</span>
+        · {{ q.updated_at|date:"M d" }}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In — CodeNova</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/static/css/dark-forms.css"/>
+<style>
+  body{font-family:'Inter',sans-serif;background:#0b0e14;color:#ecedf6;}
+  .font-headline{font-family:'Plus Jakarta Sans',sans-serif;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .fill-icon{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .gradient-text{background:linear-gradient(135deg,#b6a0ff,#00affe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .gradient-bg{background:linear-gradient(135deg,#b6a0ff,#00affe);}
+  .glass{background:rgba(22,26,33,0.85);backdrop-filter:blur(16px);border:1px solid rgba(169,143,255,0.1);}
+  .role-card{background:#161a21;border:1px solid rgba(69,72,79,0.3);border-radius:1.25rem;padding:1.75rem;transition:all 0.2s;cursor:pointer;text-decoration:none;display:block;}
+  .role-card:hover{border-color:rgba(182,160,255,0.4);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.3);}
+  .role-card-secondary:hover{border-color:rgba(0,175,254,0.4);}
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/3 left-1/3 w-96 h-96 rounded-full blur-[130px]" style="background:rgba(182,160,255,0.07)"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[120px]" style="background:rgba(0,175,254,0.05)"></div>
+  </div>
+  <div class="w-full max-w-xl relative z-10">
+    <div class="text-center mb-10">
+      <a href="{% url 'portal:homepage' %}" class="inline-flex items-center gap-2 mb-6">
+        <img src="/static/images/codenova_logo.png" alt="CodeNova" class="h-9 w-auto object-contain" style="max-width:160px;">
+      </a>
+      <h1 class="font-headline text-3xl font-extrabold text-white mb-2">Sign In</h1>
+      <p class="text-gray-500 text-sm">Choose your account type to continue</p>
+    </div>
+
+    <div class="space-y-3 mb-6">
+      <!-- Student Login -->
+      <a href="{% url 'portal:login' %}?role=student" class="role-card flex items-center gap-5">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(182,160,255,0.15)">
+          <span class="material-symbols-outlined fill-icon text-xl" style="color:#b6a0ff">school</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-headline font-bold text-white">Student Login</p>
+          <p class="text-xs text-gray-500 mt-0.5">Access notes, quizzes, AI tutor and your progress</p>
+        </div>
+        <span class="material-symbols-outlined text-gray-600">chevron_right</span>
+      </a>
+
+      <!-- Client Login -->
+      <a href="{% url 'portal:login' %}?role=client" class="role-card role-card-secondary flex items-center gap-5">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,175,254,0.15)">
+          <span class="material-symbols-outlined fill-icon text-xl" style="color:#00affe">business_center</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-headline font-bold text-white">Client Login</p>
+          <p class="text-xs text-gray-500 mt-0.5">Track project progress, team updates and deadlines</p>
+        </div>
+        <span class="material-symbols-outlined text-gray-600">chevron_right</span>
+      </a>
+
+      <!-- Demo / Inquiry Login -->
+      <a href="{% url 'portal:login' %}?role=inquiry" class="role-card flex items-center gap-5">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(182,160,255,0.1)">
+          <span class="material-symbols-outlined fill-icon text-xl" style="color:#b6a0ff">videocam</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-headline font-bold text-white">Inquiry / Demo Login</p>
+          <p class="text-xs text-gray-500 mt-0.5">View your scheduled demo sessions and meeting links</p>
+        </div>
+        <span class="material-symbols-outlined text-gray-600">chevron_right</span>
+      </a>
+    </div>
+
+    <p class="text-center text-sm text-gray-600">
+      Don't have an account? <a href="{% url 'portal:register_choice' %}" class="font-semibold hover:underline" style="color:#b6a0ff">Register</a>
+    </p>
+    <p class="text-center mt-2 text-xs text-gray-700">
+      <a href="{% url 'portal:su_login' %}" class="hover:text-gray-500 transition-colors">Admin Panel →</a>
+    </p>
+  </div>
+</body>
+</html>

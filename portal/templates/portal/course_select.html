@@ -1,0 +1,128 @@
+{% extends "portal/base.html" %}
+{% block title %}Select Your Course — CodeNova{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-2xl">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-bg mb-4">
+        <span class="material-symbols-outlined text-3xl text-white">school</span>
+      </div>
+      <h1 class="font-headline text-3xl font-bold text-on-background mb-2">
+        Welcome to <span class="gradient-text">CodeNova</span>
+      </h1>
+      <p class="text-on-surface-variant text-sm">
+        Before you access your dashboard, please select the course(s) you're enrolling in.
+      </p>
+    </div>
+
+    {% if no_courses %}
+    <!-- Edge case: No courses in DB -->
+    <div class="glass-card rounded-2xl p-8 text-center">
+      <span class="material-symbols-outlined text-5xl text-tertiary mb-4 block">warning</span>
+      <h2 class="font-headline text-xl font-semibold text-on-background mb-2">No Courses Available</h2>
+      <p class="text-on-surface-variant text-sm mb-4">
+        No active courses have been set up yet. Please contact your administrator.
+      </p>
+      <a href="mailto:{{ support_email }}" class="text-secondary text-sm underline">
+        {{ support_email }}
+      </a>
+      <div class="mt-6">
+        <a href="{% url 'portal:logout' %}" class="text-on-surface-variant hover:text-error text-sm">
+          ← Logout
+        </a>
+      </div>
+    </div>
+    {% else %}
+
+    <!-- Course Selection Form -->
+    <div class="glass-card rounded-2xl p-8">
+      <h2 class="font-headline text-lg font-semibold text-on-background mb-1">
+        Choose Your Course(s)
+      </h2>
+      <p class="text-on-surface-variant text-xs mb-6">
+        Select one or more courses. Your dashboard content will be filtered based on your selection.
+        Your enrollment will be reviewed by an admin.
+      </p>
+
+      {% if form.errors %}
+      <div class="bg-error/10 border border-error/30 rounded-xl p-3 mb-5" id="form-errors">
+        {% for error in form.non_field_errors %}
+          <p class="text-error text-sm">{{ error }}</p>
+        {% endfor %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <p class="text-error text-sm">⚠ {{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'portal:course_select' %}">
+        {% csrf_token %}
+        <div class="grid gap-3 mb-6">
+          {% for course in available_courses %}
+          <label class="rounded-xl border border-outline-variant overflow-hidden
+                        hover:border-primary/50 hover:bg-surface-container cursor-pointer
+                        transition-all group has-[:checked]:border-primary has-[:checked]:bg-primary/5 block">
+            {% if course.banner_image %}
+            <div class="w-full h-24 overflow-hidden relative">
+              <img src="{{ course.banner_image.url }}" alt="{{ course.title }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            </div>
+            {% endif %}
+            <div class="flex items-start gap-4 p-4">
+              <input
+                type="checkbox"
+                name="courses"
+                value="{{ course.pk }}"
+                class="mt-1 rounded accent-primary cursor-pointer"
+                {% if form.data.courses and course.pk|stringformat:"s" in form.data.getlist.courses %}checked{% endif %}
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="material-symbols-outlined text-primary text-lg fill-icon">
+                    {{ course.icon|default:"school" }}
+                  </span>
+                  <span class="font-headline font-semibold text-on-background text-sm">
+                    {{ course.title }}
+                  </span>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant capitalize">
+                    {{ course.get_level_display }}
+                  </span>
+                </div>
+                {% if course.description %}
+                <p class="text-on-surface-variant text-xs line-clamp-2">{{ course.description }}</p>
+                {% endif %}
+                <div class="flex items-center gap-3 mt-2 text-xs text-on-surface-variant">
+                  {% if course.subject %}<span>📚 {{ course.subject }}</span>{% endif %}
+                  {% if course.duration %}<span>⏱ {{ course.duration }}</span>{% endif %}
+                </div>
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+
+        <button type="submit"
+                class="w-full gradient-bg text-white font-semibold py-3 px-6 rounded-xl
+                       hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-lg">check_circle</span>
+          Confirm Course Selection
+        </button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <a href="{% url 'portal:logout' %}" class="text-on-surface-variant hover:text-error text-xs transition-colors">
+          ← Logout
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

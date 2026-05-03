@@ -1,0 +1,105 @@
+{% extends "portal/host/base.html" %}
+{% block title %}Courses & Topics{% endblock %}
+{% block breadcrumb %}Courses & Topics{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="space-y-4">
+    <!-- Add course -->
+    <div class="form-card">
+      <div class="section-header"><span class="material-symbols-outlined text-primary text-base">add_circle</span> New Course</div>
+      <form method="post" enctype="multipart/form-data" class="space-y-3">
+        {% csrf_token %}<input type="hidden" name="action" value="add_course"/>
+        <input type="text" name="title" required placeholder="Course title *" class="h-input"/>
+        <input type="text" name="subject" placeholder="Subject" class="h-input"/>
+        <textarea name="description" rows="2" placeholder="Description…" class="h-input resize-none"></textarea>
+        <select name="level" class="h-input">
+          {% for val, label in level_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+        <input type="text" name="icon" value="school" placeholder="Material icon name" class="h-input"/>
+        <div>
+          <label class="text-xs text-on-surface-variant font-medium block mb-1">Banner Image <span class="text-on-surface-variant/50">(optional)</span></label>
+          <input type="file" name="banner_image" accept="image/*"
+                 class="h-input text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-primary/15 file:text-primary file:text-xs file:cursor-pointer"/>
+        </div>
+        <button type="submit" class="w-full h-btn h-btn-primary justify-center">Create Course</button>
+      </form>
+    </div>
+    <!-- Add topic -->
+    <div class="form-card">
+      <div class="section-header"><span class="material-symbols-outlined text-secondary text-base">add_circle</span> Add Topic</div>
+      <form method="post" class="space-y-3">
+        {% csrf_token %}<input type="hidden" name="action" value="add_topic"/>
+        <select name="course_id" required class="h-input">
+          <option value="">Select Course *</option>
+          {% for c in courses %}<option value="{{ c.pk }}">{{ c.title }}</option>{% endfor %}
+        </select>
+        <input type="text" name="topic_title" required placeholder="Topic title *" class="h-input"/>
+        <input type="number" name="topic_order" placeholder="Order (1, 2, 3…)" min="1" class="h-input"/>
+        <input type="url" name="video_url" placeholder="Video URL (YouTube)" class="h-input"/>
+        <textarea name="content" rows="2" placeholder="Content/notes…" class="h-input resize-none"></textarea>
+        <button type="submit" class="w-full h-btn h-btn-primary justify-center" style="background:linear-gradient(135deg,#00affe,#b6a0ff)">Add Topic</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Courses list -->
+  <div class="lg:col-span-2">
+    <h3 class="font-headline font-bold text-on-surface mb-4">All Courses ({{ courses.count }})</h3>
+    <div class="space-y-4">
+      {% for course in courses %}
+      <div class="glass-card rounded-xl overflow-hidden">
+        {% if course.banner_image %}
+        <div class="relative w-full h-32 bg-surface-container">
+          <img src="{{ course.banner_image.url }}" alt="Banner for {{ course.title }}" class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+          <form method="post" action="{% url 'portal:host_course_banner' course.pk %}" class="absolute top-2 right-2" onsubmit="return confirm('Remove banner image?')">
+            {% csrf_token %}<input type="hidden" name="banner_action" value="remove"/>
+            <button class="bg-black/60 hover:bg-red-900/80 text-white text-[10px] px-2 py-1 rounded-lg transition-colors">✕ Remove Banner</button>
+          </form>
+        </div>
+        {% else %}
+        <form method="post" action="{% url 'portal:host_course_banner' course.pk %}" enctype="multipart/form-data" class="flex items-center gap-2 px-4 pt-3 pb-1">
+          {% csrf_token %}<input type="hidden" name="banner_action" value="upload"/>
+          <input type="file" name="banner_image" accept="image/*" required
+                 class="text-xs text-on-surface-variant file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-[10px] file:cursor-pointer flex-1"/>
+          <button type="submit" class="h-btn h-btn-primary text-[10px] flex-shrink-0" style="padding:3px 10px">+ Banner</button>
+        </form>
+        {% endif %}
+        <div class="p-4">
+          <div class="flex items-start gap-3 mb-3">
+            <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined fill-icon text-primary text-base">{{ course.icon|default:"school" }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-on-surface">{{ course.title }}</p>
+              <p class="text-xs text-on-surface-variant">{{ course.subject }} · {{ course.get_level_display }} · {{ course.topic_count }} topics · <span class="text-secondary">{{ course.enrolled_count }} enrolled</span></p>
+            </div>
+            <form method="post" action="{% url 'portal:host_course_delete' course.pk %}" onsubmit="return confirm('Delete course and all topics?')">
+              {% csrf_token %}
+              <button class="h-btn h-btn-danger text-xs" style="padding:3px 10px">Delete</button>
+            </form>
+          </div>
+          {% if course.topics.all %}
+          <div class="ml-12 space-y-1">
+            {% for topic in course.topics.all %}
+            <div class="flex items-center gap-2 py-1 border-b border-outline-variant/5 last:border-0">
+              <span class="text-xs text-on-surface-variant">{{ topic.order }}.</span>
+              <span class="text-xs text-on-surface flex-1">{{ topic.title }}</span>
+              {% if topic.video_url %}<span class="text-[10px] text-secondary">🎥</span>{% endif %}
+              <form method="post" action="{% url 'portal:host_topic_delete' topic.pk %}" onsubmit="return confirm('Delete topic?')">
+                {% csrf_token %}
+                <button class="text-error/70 hover:text-error text-xs" style="background:none;border:none;cursor:pointer;">✕</button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="glass-card rounded-xl p-10 text-center"><p class="text-on-surface-variant">No courses yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

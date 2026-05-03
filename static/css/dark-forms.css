@@ -1,0 +1,182 @@
+/*
+ * ScholarFlow — Global Dark Form Styles
+ * ======================================
+ * Single source of truth for all input/textarea/select visibility.
+ * Loaded in every base template. Uses !important to override
+ * Tailwind CDN Preflight and browser defaults unconditionally.
+ *
+ * Design tokens:
+ *   --sf-input-bg:      #0f1623  (deep navy — readable on all dark surfaces)
+ *   --sf-input-text:    #ffffff  (pure white — maximum contrast)
+ *   --sf-placeholder:   rgba(255,255,255,0.42)
+ *   --sf-border:        rgba(255,255,255,0.10)
+ *   --sf-border-focus:  rgba(124,111,255,0.55)
+ *   --sf-focus-shadow:  rgba(53,37,205,0.14)
+ */
+
+/* ── 1. TEXT INPUTS, TEXTAREAS, SELECTS ─────────────────────────────────── */
+input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+textarea,
+select {
+  background-color: #0f1623 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── 2. FOCUS STATES ─────────────────────────────────────────────────────── */
+input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="reset"]):focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: rgba(124, 111, 255, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(53, 37, 205, 0.14) !important;
+}
+
+/* ── 3. PLACEHOLDER TEXT ────────────────────────────────────────────────── */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.42) !important;
+  opacity: 1 !important;
+}
+
+/* Webkit vendor prefix */
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder { color: rgba(255, 255, 255, 0.42) !important; }
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder     { color: rgba(255, 255, 255, 0.42) !important; }
+
+/* ── 4. SELECT DROPDOWN OPTIONS ─────────────────────────────────────────── */
+select option,
+select optgroup {
+  background-color: #0f1623 !important;
+  color: #ffffff !important;
+}
+
+/* ── 5. FILE INPUTS ─────────────────────────────────────────────────────── */
+input[type="file"] {
+  background-color: #0f1623 !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  background: linear-gradient(135deg, #3525cd, #5a4fdb);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: opacity 0.15s;
+}
+input[type="file"]::-webkit-file-upload-button:hover { opacity: 0.88; }
+
+input[type="file"]::file-selector-button {
+  background: linear-gradient(135deg, #3525cd, #5a4fdb);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 0.75rem;
+}
+
+/* ── 6. RANGE SLIDERS ───────────────────────────────────────────────────── */
+input[type="range"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  accent-color: #7c6fff;
+  cursor: pointer;
+}
+
+/* ── 7. RADIO & CHECKBOX (keep browser default, just accent color) ────────── */
+input[type="radio"],
+input[type="checkbox"] {
+  background-color: revert !important;
+  color: revert !important;
+  border: revert !important;
+  accent-color: #7c6fff;
+}
+
+/* ── 8. BROWSER AUTOFILL — prevent white flash ───────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #0f1623 inset !important;
+  box-shadow: 0 0 0 1000px #0f1623 inset !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ── 9. DISABLED STATE ───────────────────────────────────────────────────── */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #0a0d15 !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ── 10. CLASS-BASED OVERRIDES (h-input, su-input) — reinforce dark theme ── */
+.h-input,
+.su-input {
+  background-color: #0f1623 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+.h-input:focus,
+.su-input:focus {
+  border-color: rgba(124, 111, 255, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(53, 37, 205, 0.14) !important;
+  outline: none !important;
+}
+
+.h-input::placeholder,
+.su-input::placeholder {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+/* ── 11. TAILWIND CDN FORMS PLUGIN RESET OVERRIDE ────────────────────────── */
+/* The Tailwind forms plugin sets [type="text"], etc. to white bg — defeat it */
+[type='text'], [type='email'], [type='url'], [type='password'],
+[type='number'], [type='date'], [type='datetime-local'], [type='month'],
+[type='search'], [type='tel'], [type='time'], [type='week'],
+[multiple], textarea, select {
+  background-color: #0f1623 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+[type='text']:focus, [type='email']:focus, [type='url']:focus,
+[type='password']:focus, [type='number']:focus, [type='date']:focus,
+[type='datetime-local']:focus, [type='month']:focus, [type='search']:focus,
+[type='tel']:focus, [type='time']:focus, [type='week']:focus,
+[multiple]:focus, textarea:focus, select:focus {
+  --tw-ring-color: rgba(124, 111, 255, 0.35) !important;
+  border-color: rgba(124, 111, 255, 0.55) !important;
+  outline: none !important;
+}

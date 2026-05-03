@@ -1,0 +1,107 @@
+{% extends "portal/base.html" %}
+{% block title %}Performance{% endblock %}
+{% block breadcrumb %}Performance{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-1">My Performance</h2>
+  <p class="text-on-surface-variant text-sm">A detailed breakdown of your academic progress.</p>
+</div>
+<!-- Score overview -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  <!-- Ring -->
+  <div class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+    <div class="relative w-28 h-28 mb-4">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#1c2028" stroke-width="10"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="url(#g1)" stroke-width="10"
+          stroke-dasharray="251.327" stroke-dashoffset="{{ 251.327|add:0 }}"
+          style="stroke-dashoffset: calc(251.327 - (251.327 * {{ perf.overall }} / 100))"
+          stroke-linecap="round"/>
+        <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#b6a0ff"/>
+          <stop offset="100%" stop-color="#00affe"/>
+        </linearGradient></defs>
+      </svg>
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span class="text-2xl font-extrabold font-headline gradient-text">{{ perf.overall|floatformat:0 }}%</span>
+      </div>
+    </div>
+    <h3 class="font-headline font-bold text-on-surface mb-1">Overall Score</h3>
+    <p class="text-xs text-on-surface-variant">Weighted across all modules</p>
+  </div>
+  <!-- Breakdown -->
+  <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+    <h3 class="font-headline font-bold text-on-surface mb-5">Score Breakdown</h3>
+    <div class="space-y-5">
+      <div>
+        <div class="flex justify-between text-sm mb-2">
+          <span class="font-semibold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">quiz</span> Quiz Average</span>
+          <span class="font-bold gradient-text">{{ perf.quiz_avg|floatformat:1 }}%</span>
+        </div>
+        <div class="progress-track h-3"><div class="progress-fill h-3" style="width:{{ perf.quiz_avg }}%"></div></div>
+      </div>
+      <div>
+        <div class="flex justify-between text-sm mb-2">
+          <span class="font-semibold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-base">assignment</span> Assignment Average</span>
+          <span class="font-bold gradient-text">{{ perf.assignment_avg|floatformat:1 }}%</span>
+        </div>
+        <div class="progress-track h-3"><div class="progress-fill h-3" style="width:{{ perf.assignment_avg }}%"></div></div>
+      </div>
+      <div>
+        <div class="flex justify-between text-sm mb-2">
+          <span class="font-semibold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">school</span> Topics Completed</span>
+          <span class="font-bold text-on-surface">{{ perf.topics_done }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% if quiz_results %}
+<div class="glass-card rounded-2xl p-6 mb-6">
+  <h3 class="font-headline font-bold text-on-surface mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-primary">quiz</span> Quiz History</h3>
+  <div class="space-y-3">
+    {% for r in quiz_results %}
+    <div class="flex items-center gap-4 p-3 bg-surface-container rounded-xl">
+      {% if r.quiz.is_ai_generated %}<span class="text-xs bg-secondary/15 text-secondary px-2 py-0.5 rounded-full font-bold flex-shrink-0">AI</span>{% endif %}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-on-surface truncate">{{ r.quiz.title }}</p>
+        <p class="text-xs text-on-surface-variant">{{ r.taken_at|date:"M d, Y" }}{% if r.quiz.subject %} · {{ r.quiz.subject }}{% endif %}</p>
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="text-sm font-bold {% if r.percentage >= 50 %}text-green-400{% else %}text-error{% endif %}">{{ r.percentage|floatformat:0 }}%</p>
+        <p class="text-xs text-on-surface-variant">{{ r.score }}/{{ r.total }}</p>
+      </div>
+      <div class="w-16 flex-shrink-0"><div class="progress-track h-1.5"><div class="progress-fill h-1.5" style="width:{{ r.percentage }}%"></div></div></div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% if submissions %}
+<div class="glass-card rounded-2xl p-6">
+  <h3 class="font-headline font-bold text-on-surface mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">assignment_turned_in</span> Graded Assignments</h3>
+  <div class="space-y-3">
+    {% for s in submissions %}
+    <div class="flex items-center gap-4 p-3 bg-surface-container rounded-xl">
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-on-surface truncate">{{ s.assignment.title }}</p>
+        <p class="text-xs text-on-surface-variant">{{ s.submitted_at|date:"M d, Y" }}{% if s.assignment.subject %} · {{ s.assignment.subject }}{% endif %}</p>
+        {% if s.feedback %}<p class="text-xs text-on-surface-variant italic mt-0.5 truncate">"{{ s.feedback|truncatechars:60 }}"</p>{% endif %}
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="text-sm font-bold text-secondary">{{ s.marks }}/{{ s.assignment.max_marks }}</p>
+        <p class="text-xs text-on-surface-variant">{{ s.get_status_display }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% if not quiz_results and not submissions %}
+<div class="text-center py-12 glass-card rounded-2xl">
+  <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 block mb-3">insights</span>
+  <p class="text-on-surface-variant font-semibold">No performance data yet.</p>
+  <p class="text-sm text-on-surface-variant/60 mt-1">Complete quizzes and assignments to see your progress here.</p>
+</div>
+{% endif %}
+{% endblock %}
